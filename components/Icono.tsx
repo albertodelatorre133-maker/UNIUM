@@ -1,0 +1,111 @@
+"use client";
+
+import {
+  Activity,
+  AlertCircle,
+  ArmchairIcon,
+  ArrowLeft,
+  CalendarCheck,
+  CalendarDays,
+  CalendarPlus,
+  CalendarX,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Dumbbell,
+  Eye,
+  EyeOff,
+  HeartPulse,
+  Instagram,
+  ListChecks,
+  LogOut,
+  Mail,
+  MapPin,
+  Menu,
+  MinusCircle,
+  Phone,
+  Plus,
+  Repeat,
+  Save,
+  Search,
+  SearchX,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+  Undo2,
+  User,
+  UserCheck,
+  UserPlus,
+  UserSearch,
+  Users,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+
+/**
+ * Los nombres siguen la nomenclatura de Material Symbols usada en el diseño
+ * y se resuelven contra el set de Lucide React, que viaja en el bundle.
+ */
+const ICONOS: Record<string, LucideIcon> = {
+  add: Plus,
+  arrow_back: ArrowLeft,
+  calendar_add_on: CalendarPlus,
+  calendar_month: CalendarDays,
+  call: Phone,
+  chair: ArmchairIcon,
+  check: Check,
+  check_circle: CheckCircle2,
+  chevron_left: ChevronLeft,
+  chevron_right: ChevronRight,
+  close: X,
+  delete: Trash2,
+  diversity_3: Users,
+  do_not_disturb_on: MinusCircle,
+  error: AlertCircle,
+  event: CalendarDays,
+  event_available: CalendarCheck,
+  event_busy: CalendarX,
+  fitness_center: Dumbbell,
+  group: Users,
+  groups: Users,
+  how_to_reg: UserCheck,
+  location_on: MapPin,
+  logout: LogOut,
+  mail: Mail,
+  menu: Menu,
+  monitor_heart: HeartPulse,
+  person: User,
+  person_add: UserPlus,
+  person_search: UserSearch,
+  photo_camera: Instagram,
+  repeat: Repeat,
+  rule: ListChecks,
+  save: Save,
+  schedule: Clock,
+  search: Search,
+  search_off: SearchX,
+  self_improvement: Sparkles,
+  shield_person: ShieldCheck,
+  tune: SlidersHorizontal,
+  trending_up: TrendingUp,
+  undo: Undo2,
+  visibility: Eye,
+  visibility_off: EyeOff,
+};
+
+export function Icono({
+  nombre,
+  size = 18,
+  className = "",
+}: {
+  nombre: string;
+  size?: number;
+  className?: string;
+}) {
+  const Componente = ICONOS[nombre] ?? Activity;
+  return <Componente aria-hidden size={size} strokeWidth={1.6} className={`shrink-0 ${className}`} />;
+}

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="UNIUM Wellness Training">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7e9a8"/>
+      <stop offset="45%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#8b6e1e"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#000000"/>
+  <circle cx="512" cy="512" r="400" fill="none" stroke="url(#gold)" stroke-width="6" filter="url(#glow)" opacity="0.95"/>
+
+  <g filter="url(#glow)">
+    <!-- Monograma U W con figura humana -->
+    <circle cx="512" cy="274" r="26" fill="url(#gold)"/>
+    <path d="M352 268 v170 a92 92 0 0 0 184 0" fill="none" stroke="url(#gold)" stroke-width="34" stroke-linecap="round"/>
+    <path d="M436 330 q76 -78 152 0" fill="none" stroke="url(#gold)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M470 316 L522 500 L570 372 L618 500 L670 316" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="512" y="600" text-anchor="middle" fill="url(#gold)" font-family="Archivo Narrow, Helvetica, Arial, sans-serif" font-size="112" letter-spacing="26">UNIUM</text>
+
+  <g fill="#d4af37" opacity="0.9">
+    <rect x="136" y="658" width="72" height="3"/>
+    <rect x="816" y="658" width="72" height="3"/>
+  </g>
+  <text x="512" y="672" text-anchor="middle" fill="#d4af37" font-family="Hanken Grotesk, Helvetica, Arial, sans-serif" font-size="40" letter-spacing="9">WELLNESS TRAINING</text>
+  <text x="512" y="738" text-anchor="middle" fill="#c9a94a" opacity="0.85" font-family="Hanken Grotesk, Helvetica, Arial, sans-serif" font-size="32" letter-spacing="7">UNIDOS SOMOS MÁS FUERTES</text>
+
+  <g transform="translate(512 812)" fill="#d4af37">
+    <rect x="-58" y="-11" width="10" height="22" rx="3"/>
+    <rect x="-44" y="-17" width="13" height="34" rx="4"/>
+    <rect x="-27" y="-5" width="54" height="10" rx="4"/>
+    <rect x="31" y="-17" width="13" height="34" rx="4"/>
+    <rect x="48" y="-11" width="10" height="22" rx="3"/>
+  </g>
+</svg>
