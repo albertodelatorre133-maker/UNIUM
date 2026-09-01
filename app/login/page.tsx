@@ -65,7 +65,19 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="password">Contraseña</label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="!mb-0">
+              Contraseña
+            </label>
+            {hayBaseDeDatos() && (
+              <Link
+                href="/recuperar"
+                className="mb-1 font-mono text-[9.5px] uppercase tracking-[0.12em] text-primary hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            )}
+          </div>
           <div className="relative">
             <input
               id="password"

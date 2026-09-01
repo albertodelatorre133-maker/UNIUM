@@ -68,6 +68,8 @@ interface StoreValue {
     password: string;
   }) => Promise<{ ok: boolean; error?: string; sesionActiva?: boolean }>;
   salir: () => Promise<void>;
+  solicitarRecuperacion: (email: string) => Promise<{ ok: boolean; error?: string }>;
+  restablecerPassword: (password: string) => Promise<{ ok: boolean; error?: string }>;
   guardarConfig: (config: DayConfig[]) => Promise<void>;
   guardarEstudio: (cambios: Partial<Estudio>) => Promise<void>;
   crearPilar: (pilar: Omit<Pilar, "id">) => Promise<void>;
@@ -329,6 +331,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     setState((s) => ({ ...s, sessionUserId: null }));
   }, [remoto, recargar]);
+
+  const solicitarRecuperacion = useCallback(
+    async (email: string) => {
+      if (!remoto) return { ok: false, error: "Esta función requiere una base de datos conectada." };
+      return datosAuth.solicitarRecuperacion(email);
+    },
+    [remoto],
+  );
+
+  const restablecerPassword = useCallback(
+    async (password: string) => {
+      if (!remoto) return { ok: false, error: "Esta función requiere una base de datos conectada." };
+      return datosAuth.restablecerPassword(password);
+    },
+    [remoto],
+  );
 
   const guardarConfig = useCallback(
     async (config: DayConfig[]) => {
@@ -784,6 +802,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     login,
     registrar,
     salir,
+    solicitarRecuperacion,
+    restablecerPassword,
     guardarConfig,
     guardarEstudio,
     crearPilar,

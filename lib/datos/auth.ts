@@ -57,6 +57,28 @@ export async function salir(): Promise<void> {
   await clienteNavegador().auth.signOut();
 }
 
+/**
+ * Supabase siempre responde ok aunque el correo no exista, para no revelar
+ * qué cuentas están registradas.
+ */
+export async function solicitarRecuperacion(email: string): Promise<Resultado> {
+  const sb = clienteNavegador();
+  const origen = typeof window !== "undefined" ? window.location.origin : "";
+  const { error } = await sb.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: `${origen}/restablecer`,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/** Requiere una sesión de recuperación activa (ver /restablecer). */
+export async function restablecerPassword(password: string): Promise<Resultado> {
+  const sb = clienteNavegador();
+  const { error } = await sb.auth.updateUser({ password });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 /** Perfil de la sesión abierta, o null si no hay ninguna. */
 export async function perfilActual(): Promise<User | null> {
   const sb = clienteNavegador();
