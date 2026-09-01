@@ -7,7 +7,7 @@ import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
 import { MetodoInicio } from "@/components/MetodoInicio";
 import { HorarioInicio } from "@/components/HorarioInicio";
-import { MetricasInicio } from "@/components/MetricasInicio";
+import { GrupoMaximoTexto, MetricasInicio } from "@/components/MetricasInicio";
 import { ChipCiudad, LemaFooter, UbicacionInicio } from "@/components/EstudioInicio";
 import { FOTOS } from "@/lib/seed";
 
@@ -59,9 +59,7 @@ export default function LandingPage() {
               <div className="absolute inset-x-0 bottom-0 p-6">
                 <ChipCiudad />
                 <p className="mt-3 font-display text-xl font-semibold uppercase leading-tight tracking-wide text-white">
-                  Grupos de máximo
-                  <br />
-                  12 alumnas
+                  <GrupoMaximoTexto />
                 </p>
               </div>
             </Foto>

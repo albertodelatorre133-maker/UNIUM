@@ -27,3 +27,24 @@ export function MetricasInicio() {
     </div>
   );
 }
+
+/**
+ * Texto de la foto del hero ("Grupos de máximo N alumnas"). Toma el valor de
+ * la cifra "Alumnas por clase" en vez de tenerlo escrito aparte, para que no
+ * se desincronicen si alguien edita solo una de las dos.
+ */
+export function GrupoMaximoTexto() {
+  const { hidratado, state } = useStore();
+  if (!hidratado) return null;
+
+  const metrica = state.metricas.find((m) => m.etiqueta.toLowerCase().includes("alumnas"));
+  const valor = metrica?.valor ?? "12";
+
+  return (
+    <>
+      Grupos de máximo
+      <br />
+      {valor} alumnas
+    </>
+  );
+}
