@@ -9,12 +9,12 @@
   </defs>
   <circle cx="200" cy="200" r="186" fill="none" stroke="url(#oroIso)" stroke-width="9" opacity="0.85"/>
   <!-- Mismo monograma que el logotipo, escalado para llenar el anillo -->
-  <g transform="translate(-158 -35) scale(0.7)">
+  <g transform="translate(-162 -70) scale(0.71)">
     <g fill="none" stroke="url(#oroIso)" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M366 240 V390 a76 76 0 0 0 152 0 V240" stroke-width="36"/>
-      <path d="M462 240 L514 452 L558 334 L602 452 L656 240" stroke-width="30"/>
-      <path d="M430 300 Q508 230 586 300" stroke-width="18"/>
+      <path d="M366 289 V421 a76 67 0 0 0 152 0 V289" stroke-width="36"/>
+      <path d="M462 289 L514 476 L558 372 L602 476 L656 289" stroke-width="30"/>
+      <path d="M430 342 Q508 280 586 342" stroke-width="18"/>
     </g>
-    <circle cx="508" cy="228" r="24" fill="url(#oroIso)"/>
+    <circle cx="508" cy="279" r="24" fill="url(#oroIso)"/>
   </g>
 </svg>

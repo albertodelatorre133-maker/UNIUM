@@ -23,32 +23,32 @@
   <!-- Monograma U + W con la figura humana -->
   <g filter="url(#haloSuave)">
     <g fill="none" stroke="url(#oro)" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M366 240 V390 a76 76 0 0 0 152 0 V240" stroke-width="36"/>
-      <path d="M462 240 L514 452 L558 334 L602 452 L656 240" stroke-width="30"/>
-      <path d="M430 300 Q508 230 586 300" stroke-width="18"/>
+      <path d="M366 289 V421 a76 67 0 0 0 152 0 V289" stroke-width="36"/>
+      <path d="M462 289 L514 476 L558 372 L602 476 L656 289" stroke-width="30"/>
+      <path d="M430 342 Q508 280 586 342" stroke-width="18"/>
     </g>
-    <circle cx="508" cy="228" r="24" fill="url(#oro)"/>
+    <circle cx="508" cy="279" r="24" fill="url(#oro)"/>
   </g>
 
   <!--
     textLength + lengthAdjust fijan el ancho de cada línea: aunque el visor no
     tenga la tipografía de la marca, las letras conservan su posición.
   -->
-  <text x="512" y="602" text-anchor="middle" textLength="566" lengthAdjust="spacing"
+  <text x="512" y="600" text-anchor="middle" textLength="626" lengthAdjust="spacing"
         fill="url(#oro)" font-family="'Archivo Narrow','Helvetica Neue',Helvetica,Arial,sans-serif"
-        font-size="116" font-weight="500">UNIUM</text>
+        font-size="100" font-weight="300">UNIUM</text>
 
-  <g fill="#d4af37" opacity="0.85">
-    <rect x="166" y="661" width="74" height="3"/>
-    <rect x="784" y="661" width="74" height="3"/>
+  <g fill="#d4af37" opacity="0.8">
+    <rect x="188" y="661" width="66" height="3"/>
+    <rect x="770" y="661" width="66" height="3"/>
   </g>
-  <text x="512" y="674" text-anchor="middle" textLength="502" lengthAdjust="spacing"
+  <text x="512" y="672" text-anchor="middle" textLength="452" lengthAdjust="spacing"
         fill="#e0bd5a" font-family="'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif"
-        font-size="41">WELLNESS TRAINING</text>
+        font-size="34" font-weight="400">WELLNESS TRAINING</text>
 
-  <text x="512" y="742" text-anchor="middle" textLength="546" lengthAdjust="spacing"
+  <text x="512" y="740" text-anchor="middle" textLength="540" lengthAdjust="spacing"
         fill="#c9a94a" opacity="0.9" font-family="'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif"
-        font-size="33">UNIDOS SOMOS MÁS FUERTES</text>
+        font-size="30" font-weight="300">UNIDOS SOMOS MÁS FUERTES</text>
 
   <g transform="translate(512 814)" fill="#d4af37">
     <rect x="-59" y="-11" width="10" height="22" rx="3"/>
