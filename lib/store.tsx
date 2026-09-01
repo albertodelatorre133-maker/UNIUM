@@ -38,7 +38,7 @@ import * as datosPilares from "./datos/pilares";
 import * as datosMetricas from "./datos/metricas";
 import * as datosCancelaciones from "./datos/cancelaciones";
 import * as datosEspera from "./datos/listaEspera";
-import { notificarPush } from "./push";
+import { notificarPush, notificarNuevaReserva } from "./push";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -529,7 +529,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     async (classId, fecha) => {
       if (remoto) {
         const r = await datosReservas.reservar(classId, fecha);
-        if (r.ok) await recargar();
+        if (r.ok) {
+          await recargar();
+          notificarNuevaReserva(classId, fecha);
+        }
         return r;
       }
 

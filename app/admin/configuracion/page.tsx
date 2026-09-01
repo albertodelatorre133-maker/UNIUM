@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Icono, ICONOS_PILARES } from "@/components/Icono";
+import { NotificacionesPush } from "@/components/NotificacionesPush";
 import { useStore } from "@/lib/store";
 import { DIAS } from "@/lib/date";
+import { hayBaseDeDatos } from "@/lib/supabase/cliente";
 import type { DayConfig, Estudio, Metrica, Pilar } from "@/lib/types";
 
 const HORAS = Array.from({ length: 24 * 2 }, (_, i) => {
@@ -17,6 +19,7 @@ const PESTANAS = [
   { id: "estudio", label: "Estudio", icono: "location_on" },
   { id: "metodo", label: "Método", icono: "fitness_center" },
   { id: "metricas", label: "Cifras", icono: "trending_up" },
+  { id: "notificaciones", label: "Notificaciones", icono: "notifications" },
 ] as const;
 
 type Pestana = (typeof PESTANAS)[number]["id"];
@@ -59,6 +62,30 @@ export default function ConfiguracionPage() {
       {tab === "estudio" && <PestanaEstudio />}
       {tab === "metodo" && <PestanaMetodo />}
       {tab === "metricas" && <PestanaMetricas />}
+      {tab === "notificaciones" && <PestanaNotificaciones />}
+    </div>
+  );
+}
+
+function PestanaNotificaciones() {
+  if (!hayBaseDeDatos()) {
+    return (
+      <div className="glass px-6 py-16 text-center">
+        <Icono nombre="notifications" size={34} className="mx-auto text-muted-dim" />
+        <p className="mt-4 text-sm text-muted">
+          Las notificaciones push necesitan la base de datos conectada.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <p className="max-w-2xl text-[13px] text-muted sm:text-sm">
+        Actívalas en cada celular/computador del staff desde donde quieras enterarte al momento en
+        que una alumna agenda una clase.
+      </p>
+      <NotificacionesPush descripcion="Te avisa cada vez que una alumna agenda una clase" />
     </div>
   );
 }

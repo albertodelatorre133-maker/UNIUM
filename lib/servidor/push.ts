@@ -9,7 +9,7 @@ export interface NotificacionPush {
   cuerpo: string;
   url?: string;
   /** Define el ícono, la vibración y el botón que usa el service worker al mostrarla. */
-  tipo?: "recordatorio" | "cupo" | "promocion";
+  tipo?: "recordatorio" | "cupo" | "promocion" | "reserva";
 }
 
 function configurarVapid() {
@@ -64,5 +64,17 @@ export async function enviarATodos(notificacion: NotificacionPush): Promise<void
   configurarVapid();
   const sb = clienteAdmin();
   const { data: subs } = await sb.from("push_subscripciones").select("*");
+  await enviarASuscripciones(sb, subs ?? [], notificacion);
+}
+
+/** Notifica solo a los dispositivos del staff (ej. cuando una alumna agenda una clase). */
+export async function enviarAAdmins(notificacion: NotificacionPush): Promise<void> {
+  configurarVapid();
+  const sb = clienteAdmin();
+  const { data: admins } = await sb.from("perfiles").select("id").eq("rol", "admin");
+  const ids = (admins ?? []).map((a) => a.id);
+  if (ids.length === 0) return;
+
+  const { data: subs } = await sb.from("push_subscripciones").select("*").in("usuario_id", ids);
   await enviarASuscripciones(sb, subs ?? [], notificacion);
 }

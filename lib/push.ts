@@ -81,13 +81,26 @@ export async function notificarPush(payload: {
   titulo: string;
   cuerpo: string;
   url?: string;
-  tipo?: "recordatorio" | "cupo" | "promocion";
+  tipo?: "recordatorio" | "cupo" | "promocion" | "reserva";
 }): Promise<void> {
   try {
     await fetch("/api/push/notificar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    });
+  } catch {
+    // silencio: es un plus, no debe bloquear el flujo principal.
+  }
+}
+
+/** Avisa al staff que una alumna acaba de agendar una clase. */
+export async function notificarNuevaReserva(claseId: string, fecha: string): Promise<void> {
+  try {
+    await fetch("/api/push/nueva-reserva", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ claseId, fecha }),
     });
   } catch {
     // silencio: es un plus, no debe bloquear el flujo principal.
