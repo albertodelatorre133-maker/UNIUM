@@ -13,7 +13,7 @@ function DetalleClase() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const fecha = search.get("fecha") ?? hoyISO();
-  const { state, sesion, reservar, cancelar } = useStore();
+  const { state, sesion, reservar, cancelar, unirseListaEspera, salirListaEspera } = useStore();
   const [aviso, setAviso] = useState<string | null>(null);
 
   const s = sesion(params.id, fecha);
@@ -107,10 +107,35 @@ function DetalleClase() {
                     Cancelar reserva
                   </button>
                 </div>
+              ) : lleno && s.miEspera ? (
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <span className="btn-ghost pointer-events-none flex-1 border-primary/40 text-primary">
+                    <Icono nombre="schedule" size={16} />
+                    ESTÁS EN LA LISTA DE ESPERA
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    onClick={() => salirListaEspera(s.miEspera!.id)}
+                  >
+                    Salir de la lista
+                  </button>
+                </div>
+              ) : lleno ? (
+                <button
+                  type="button"
+                  className="btn-ghost w-full border-primary/30 text-base text-primary sm:w-auto"
+                  onClick={async () => {
+                    const res = await unirseListaEspera(s.clase.id, s.fecha);
+                    setAviso(res.ok ? null : (res.error ?? "No fue posible anotarte."));
+                  }}
+                >
+                  <Icono nombre="schedule" />
+                  UNIRME A LA LISTA DE ESPERA
+                </button>
               ) : (
                 <button
                   type="button"
-                  disabled={lleno}
                   className="btn-gold w-full text-base sm:w-auto"
                   onClick={async () => {
                     const res = await reservar(s.clase.id, s.fecha);
@@ -118,8 +143,13 @@ function DetalleClase() {
                   }}
                 >
                   <Icono nombre="calendar_add_on" />
-                  {lleno ? "SIN CUPOS DISPONIBLES" : "AGENDAR ESTA CLASE"}
+                  AGENDAR ESTA CLASE
                 </button>
+              )}
+              {lleno && s.enEspera > 0 && (
+                <p className="mt-3 text-center text-xs text-muted-dim sm:text-left">
+                  {s.enEspera} {s.enEspera === 1 ? "persona" : "personas"} en la lista de espera.
+                </p>
               )}
             </div>
           </section>

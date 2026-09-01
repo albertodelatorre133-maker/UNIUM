@@ -9,7 +9,17 @@ import { addDays, formatoLargo, hoyISO, MESES, startOfWeek, sumarMinutos } from 
 
 function ControlAsistencia() {
   const search = useSearchParams();
-  const { sesionesDeLaSemana, sesion, reservasDeSesion, marcarAsistencia, nombreCoach } = useStore();
+  const {
+    sesionesDeLaSemana,
+    sesion,
+    reservasDeSesion,
+    marcarAsistencia,
+    nombreCoach,
+    esperaDeSesion,
+    registrarDesdeEspera,
+    salirListaEspera,
+  } = useStore();
+  const [avisoEspera, setAvisoEspera] = useState<string | null>(null);
 
   const semana = sesionesDeLaSemana(0);
   const sesiones = useMemo(() => semana.flat(), [semana]);
@@ -29,8 +39,15 @@ function ControlAsistencia() {
   const actual = classId && fecha ? sesion(classId, fecha) : null;
   const lista = actual ? reservasDeSesion(classId, fecha) : [];
   const presentes = lista.filter((r) => r.booking.asistio).length;
+  const espera = actual ? esperaDeSesion(classId, fecha) : [];
 
   const lunes = startOfWeek(new Date());
+
+  async function registrar(entryId: string) {
+    setAvisoEspera(null);
+    const r = await registrarDesdeEspera(entryId);
+    if (!r.ok) setAvisoEspera(r.error ?? "No fue posible registrar la reserva.");
+  }
 
   return (
     <div className="space-y-8">
@@ -194,6 +211,71 @@ function ControlAsistencia() {
               </ul>
             )}
           </section>
+
+          {espera.length > 0 && (
+            <section className="glass p-5 sm:p-8">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-xl font-semibold uppercase tracking-wide">
+                  Lista de espera
+                </h3>
+                <span className="chip">{espera.length} en espera</span>
+              </div>
+              <p className="mt-2 max-w-2xl text-[13px] text-muted">
+                Alumnas que quieren un cupo en esta sesión si se libera uno. Regístralas manualmente
+                cuando cancele alguien.
+              </p>
+
+              {avisoEspera && (
+                <p className="mt-4 flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
+                  <Icono nombre="error" size={15} />
+                  {avisoEspera}
+                </p>
+              )}
+
+              <div className="my-6 hairline" />
+
+              <ul className="space-y-3">
+                {espera.map(({ entrada, alumna }, i) => (
+                  <li
+                    key={entrada.id}
+                    className="flex flex-col gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4 transition sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/15 font-mono text-[11px] text-muted-dim">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold text-white">{alumna.nombre}</p>
+                        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-dim">
+                          {alumna.telefono}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => registrar(entrada.id)}
+                        disabled={actual.disponibles === 0}
+                        className="btn-gold !px-4 !py-2 text-xs disabled:opacity-40"
+                      >
+                        <Icono nombre="check" size={16} />
+                        Registrar
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Quitar a ${alumna.nombre} de la lista de espera`}
+                        onClick={() => salirListaEspera(entrada.id)}
+                        className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
+                      >
+                        <Icono nombre="close" size={16} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>

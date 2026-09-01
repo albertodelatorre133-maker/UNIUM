@@ -99,6 +99,32 @@ export interface Metrica {
   orden: number;
 }
 
+/**
+ * Registro histórico de una reserva cancelada. Los nombres se guardan como
+ * texto (no solo el id) para que el historial siga siendo legible aunque la
+ * alumna o la clase se borren más adelante.
+ */
+export interface Cancelacion {
+  id: string;
+  usuarioId: string | null;
+  usuarioNombre: string;
+  claseId: string | null;
+  claseTitulo: string;
+  fechaClase: string;
+  canceladaEn: string;
+  canceladaPorId: string | null;
+  canceladaPorNombre: string;
+}
+
+/** Una alumna anotada en la lista de espera de una clase llena. */
+export interface EsperaEntry {
+  id: string;
+  classId: string;
+  userId: string;
+  fecha: string;
+  creadaEn: string;
+}
+
 export interface AppState {
   users: User[];
   config: DayConfig[];
@@ -109,6 +135,8 @@ export interface AppState {
   estudio: Estudio;
   pilares: Pilar[];
   metricas: Metrica[];
+  cancelaciones: Cancelacion[];
+  listaEspera: EsperaEntry[];
   /** Promociones ya vistas por cada alumna: userId -> ids de promocion. */
   leidas: Record<string, string[]>;
   sessionUserId: string | null;

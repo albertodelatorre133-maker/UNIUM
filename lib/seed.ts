@@ -360,6 +360,8 @@ export function crearEstadoInicial(): AppState {
     estudio: ESTUDIO,
     pilares: PILARES_INICIALES,
     metricas: METRICAS_INICIALES,
+    cancelaciones: [],
+    listaEspera: [],
     leidas: {},
     sessionUserId: null,
   };

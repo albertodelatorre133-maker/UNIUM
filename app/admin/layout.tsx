@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             { href: "/admin/alumnas", label: "Alumnas", icono: "groups" },
             { href: "/admin/coaches", label: "Coaches", icono: "badge" },
             { href: "/admin/asistencia", label: "Asistencia", icono: "how_to_reg" },
+            { href: "/admin/cancelaciones", label: "Canceladas", icono: "event_busy" },
             { href: "/admin/promociones", label: "Promos", icono: "campaign" },
             { href: "/admin/configuracion", label: "Ajustes", icono: "tune" },
           ]}

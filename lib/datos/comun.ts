@@ -1,8 +1,10 @@
 import type {
   Booking,
+  Cancelacion,
   ClassSession,
   Coach,
   DayConfig,
+  EsperaEntry,
   Estudio,
   Metrica,
   Pilar,
@@ -10,9 +12,11 @@ import type {
   User,
 } from "@/lib/types";
 import type {
+  CancelacionFila,
   ClaseFila,
   CoachFila,
   DiaFila,
+  EsperaFila,
   EstudioFila,
   MetricaFila,
   PerfilFila,
@@ -128,6 +132,30 @@ export function aMetrica(fila: MetricaFila): Metrica {
     valor: fila.valor,
     etiqueta: fila.etiqueta,
     orden: fila.orden,
+  };
+}
+
+export function aCancelacion(fila: CancelacionFila): Cancelacion {
+  return {
+    id: fila.id,
+    usuarioId: fila.usuario_id,
+    usuarioNombre: fila.usuario_nombre,
+    claseId: fila.clase_id,
+    claseTitulo: fila.clase_titulo,
+    fechaClase: fila.fecha_clase,
+    canceladaEn: fila.cancelada_en,
+    canceladaPorId: fila.cancelada_por_id,
+    canceladaPorNombre: fila.cancelada_por_nombre,
+  };
+}
+
+export function aEspera(fila: EsperaFila): EsperaEntry {
+  return {
+    id: fila.id,
+    classId: fila.clase_id,
+    userId: fila.usuario_id,
+    fecha: fila.fecha,
+    creadaEn: fila.creada_en,
   };
 }
 

@@ -11,6 +11,7 @@ const ENLACES = [
   { href: "/admin/alumnas", label: "Alumnas", icono: "groups" },
   { href: "/admin/coaches", label: "Coaches", icono: "badge" },
   { href: "/admin/asistencia", label: "Asistencia", icono: "how_to_reg" },
+  { href: "/admin/cancelaciones", label: "Cancelaciones", icono: "event_busy" },
   { href: "/admin/promociones", label: "Promociones", icono: "campaign" },
   { href: "/admin/configuracion", label: "Configuración", icono: "tune" },
 ];

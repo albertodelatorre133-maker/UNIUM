@@ -112,6 +112,16 @@ export default function AdminCalendarioPage() {
             </p>
           </Link>
 
+          {lleno && s.enEspera > 0 && (
+            <span
+              title="Horario saturado: hay alumnas anotadas a la espera de un cupo"
+              className="mt-2 flex w-fit items-center gap-1.5 rounded-md bg-red-500/12 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.1em] text-red-300"
+            >
+              <Icono nombre="schedule" size={11} />
+              +{s.enEspera} en espera
+            </span>
+          )}
+
           <div className="mt-2.5 flex items-center justify-between gap-2">
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-dim">
               {s.clase.hora}–{sumarMinutos(s.clase.hora, s.clase.duracion)}

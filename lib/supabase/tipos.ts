@@ -110,6 +110,26 @@ export type MetricaFila = {
   creada_en: string;
 };
 
+export type CancelacionFila = {
+  id: string;
+  usuario_id: string | null;
+  usuario_nombre: string;
+  clase_id: string | null;
+  clase_titulo: string;
+  fecha_clase: string;
+  cancelada_en: string;
+  cancelada_por_id: string | null;
+  cancelada_por_nombre: string;
+};
+
+export type EsperaFila = {
+  id: string;
+  clase_id: string;
+  usuario_id: string;
+  fecha: string;
+  creada_en: string;
+};
+
 type Tabla<Fila, Insercion = Partial<Fila>, Actualizacion = Partial<Fila>> = {
   Row: Fila;
   Insert: Insercion;
@@ -131,6 +151,8 @@ export type Database = {
       configuracion_estudio: Tabla<EstudioFila>;
       pilares: Tabla<PilarFila>;
       metricas: Tabla<MetricaFila>;
+      cancelaciones: Tabla<CancelacionFila>;
+      lista_espera: Tabla<EsperaFila>;
     };
     Views: Record<string, never>;
     Functions: {

@@ -13,9 +13,11 @@ import { COACHES, ESTUDIO, METRICAS_INICIALES, PILARES_INICIALES, crearEstadoIni
 import type {
   AppState,
   Booking,
+  Cancelacion,
   ClassSession,
   Coach,
   DayConfig,
+  EsperaEntry,
   Estudio,
   Metrica,
   Pilar,
@@ -34,6 +36,8 @@ import * as datosCoaches from "./datos/coaches";
 import * as datosEstudio from "./datos/estudio";
 import * as datosPilares from "./datos/pilares";
 import * as datosMetricas from "./datos/metricas";
+import * as datosCancelaciones from "./datos/cancelaciones";
+import * as datosEspera from "./datos/listaEspera";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -50,6 +54,8 @@ export interface SesionDelDia {
   disponibles: number;
   reservaPropia: Booking | null;
   pasada: boolean;
+  enEspera: number;
+  miEspera: EsperaEntry | null;
 }
 
 interface StoreValue {
@@ -82,6 +88,10 @@ interface StoreValue {
   eliminarClase: (id: string) => Promise<void>;
   reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
   cancelar: (bookingId: string) => Promise<void>;
+  unirseListaEspera: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
+  salirListaEspera: (entryId: string) => Promise<void>;
+  registrarDesdeEspera: (entryId: string) => Promise<{ ok: boolean; error?: string }>;
+  esperaDeSesion: (classId: string, fecha: string) => Array<{ entrada: EsperaEntry; alumna: User }>;
   marcarAsistencia: (bookingId: string, asistio: boolean) => Promise<void>;
   cambiarEstadoAlumna: (userId: string) => Promise<void>;
   crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => Promise<void>;
@@ -120,6 +130,8 @@ function leerEstado(): AppState {
           estudio: parsed.estudio ?? ESTUDIO,
           pilares: parsed.pilares ?? PILARES_INICIALES,
           metricas: parsed.metricas ?? METRICAS_INICIALES,
+          cancelaciones: parsed.cancelaciones ?? [],
+          listaEspera: parsed.listaEspera ?? [],
           leidas: parsed.leidas ?? {},
         };
       }
@@ -155,6 +167,8 @@ const ESTADO_VACIO: AppState = {
   estudio: ESTUDIO_VACIO,
   pilares: [],
   metricas: [],
+  cancelaciones: [],
+  listaEspera: [],
   leidas: {},
   sessionUserId: null,
 };
@@ -178,6 +192,7 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     estudio,
     pilares,
     metricas,
+    listaEspera,
     perfiles,
     reservas,
     leidasFila,
@@ -189,10 +204,17 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     datosEstudio.leerEstudio(),
     datosPilares.listarPilares(),
     datosMetricas.listarMetricas(),
+    datosEspera.listarListaEspera(),
     sb.from("perfiles").select("*"),
     sb.from("reservas").select("*"),
     sb.from("promociones_leidas").select("*"),
   ]);
+
+  // El historial de cancelaciones solo lo puede leer el staff (RLS), así que
+  // una alumna simplemente recibe un arreglo vacío en vez de un error.
+  const cancelaciones = sessionUserId
+    ? await datosCancelaciones.listarCancelaciones().catch(() => [] as Cancelacion[])
+    : [];
 
   if (perfiles.error) throw new Error(perfiles.error.message);
   if (reservas.error) throw new Error(reservas.error.message);
@@ -213,6 +235,8 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     estudio,
     pilares,
     metricas,
+    cancelaciones,
+    listaEspera,
     leidas,
     sessionUserId,
   };
@@ -523,9 +547,103 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         await recargar();
         return;
       }
-      setState((s) => ({ ...s, bookings: s.bookings.filter((b) => b.id !== bookingId) }));
+      setState((s) => {
+        const booking = s.bookings.find((b) => b.id === bookingId);
+        if (!booking) return s;
+        const alumna = s.users.find((u) => u.id === booking.userId);
+        const clase = s.classes.find((c) => c.id === booking.classId);
+        const quien = s.users.find((u) => u.id === s.sessionUserId);
+        const registro: Cancelacion = {
+          id: id("can"),
+          usuarioId: booking.userId,
+          usuarioNombre: alumna?.nombre ?? "Alumna eliminada",
+          claseId: booking.classId,
+          claseTitulo: clase?.titulo ?? "Clase eliminada",
+          fechaClase: booking.fecha,
+          canceladaEn: new Date().toISOString(),
+          canceladaPorId: s.sessionUserId,
+          canceladaPorNombre: quien?.nombre ?? "Sistema",
+        };
+        return {
+          ...s,
+          bookings: s.bookings.filter((b) => b.id !== bookingId),
+          cancelaciones: [registro, ...s.cancelaciones],
+        };
+      });
     },
     [remoto, recargar],
+  );
+
+  const unirseListaEspera = useCallback(
+    async (classId: string, fecha: string) => {
+      if (remoto) {
+        const r = await datosEspera.unirseListaEspera(classId, fecha);
+        if (r.ok) await recargar();
+        return r;
+      }
+      if (!state.sessionUserId) return { ok: false, error: "Inicia sesión para anotarte." };
+      const yaEnEspera = state.listaEspera.some(
+        (e) => e.classId === classId && e.fecha === fecha && e.userId === state.sessionUserId,
+      );
+      if (yaEnEspera) return { ok: false, error: "Ya estás en la lista de espera de esta clase." };
+      const nueva: EsperaEntry = {
+        id: id("esp"),
+        classId,
+        userId: state.sessionUserId,
+        fecha,
+        creadaEn: new Date().toISOString(),
+      };
+      setState((s) => ({ ...s, listaEspera: [...s.listaEspera, nueva] }));
+      return { ok: true };
+    },
+    [remoto, recargar, state.sessionUserId, state.listaEspera],
+  );
+
+  const salirListaEspera = useCallback(
+    async (entryId: string) => {
+      if (remoto) {
+        await datosEspera.salirListaEspera(entryId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, listaEspera: s.listaEspera.filter((e) => e.id !== entryId) }));
+    },
+    [remoto, recargar],
+  );
+
+  const registrarDesdeEspera = useCallback(
+    async (entryId: string) => {
+      if (remoto) {
+        const r = await datosEspera.promoverDesdeEspera(entryId);
+        if (r.ok) await recargar();
+        return r;
+      }
+      const entrada = state.listaEspera.find((e) => e.id === entryId);
+      if (!entrada) return { ok: false, error: "No se encontró el registro." };
+      const clase = state.classes.find((c) => c.id === entrada.classId);
+      if (!clase) return { ok: false, error: "La clase ya no existe." };
+      const cuposUsadosAhora = state.bookings.filter(
+        (b) => b.classId === entrada.classId && b.fecha === entrada.fecha,
+      ).length;
+      if (cuposUsadosAhora >= clase.cupo) {
+        return { ok: false, error: "No quedan cupos disponibles." };
+      }
+      const booking: Booking = {
+        id: id("bkg"),
+        classId: entrada.classId,
+        userId: entrada.userId,
+        fecha: entrada.fecha,
+        asistio: false,
+        creadaEn: new Date().toISOString(),
+      };
+      setState((s) => ({
+        ...s,
+        bookings: [...s.bookings, booking],
+        listaEspera: s.listaEspera.filter((e) => e.id !== entryId),
+      }));
+      return { ok: true };
+    },
+    [remoto, recargar, state.listaEspera, state.classes, state.bookings],
   );
 
   const marcarAsistencia = useCallback(
@@ -718,6 +836,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         state.bookings.find(
           (b) => b.classId === clase.id && b.fecha === fecha && b.userId === state.sessionUserId,
         ) ?? null;
+      const enEsperaDeSesion = state.listaEspera.filter(
+        (e) => e.classId === clase.id && e.fecha === fecha,
+      );
+      const miEspera =
+        enEsperaDeSesion.find((e) => e.userId === state.sessionUserId) ?? null;
       return {
         clase,
         fecha,
@@ -725,9 +848,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         disponibles: Math.max(clase.cupo - reservadas, 0),
         reservaPropia,
         pasada: fecha < hoyISO(),
+        enEspera: enEsperaDeSesion.length,
+        miEspera,
       };
     },
-    [cuposUsados, state.bookings, state.sessionUserId],
+    [cuposUsados, state.bookings, state.sessionUserId, state.listaEspera],
   );
 
   const sesionesDeLaSemana = useCallback(
@@ -794,6 +919,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [state.bookings],
   );
 
+  const esperaDeSesion = useCallback(
+    (classId: string, fecha: string) =>
+      state.listaEspera
+        .filter((e) => e.classId === classId && e.fecha === fecha)
+        .map((entrada) => ({
+          entrada,
+          alumna: state.users.find((u) => u.id === entrada.userId),
+        }))
+        .filter((r): r is { entrada: EsperaEntry; alumna: User } => Boolean(r.alumna))
+        .sort((a, b) => a.entrada.creadaEn.localeCompare(b.entrada.creadaEn)),
+    [state.listaEspera, state.users],
+  );
+
   const value: StoreValue = {
     hidratado,
     state,
@@ -816,6 +954,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     eliminarClase,
     reservar,
     cancelar,
+    unirseListaEspera,
+    salirListaEspera,
+    registrarDesdeEspera,
+    esperaDeSesion,
     marcarAsistencia,
     cambiarEstadoAlumna,
     crearPromocion,

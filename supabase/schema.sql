@@ -115,6 +115,33 @@ create table if not exists public.reservas (
   unique (clase_id, usuario_id, fecha)
 );
 
+-- Alumnas anotadas a la espera de un cupo en una clase llena. No tiene
+-- relación con el cupo real: la interfaz solo la ofrece cuando la clase está
+-- llena, y el staff decide manualmente a quién pasar a una reserva real.
+create table if not exists public.lista_espera (
+  id          uuid primary key default gen_random_uuid(),
+  clase_id    uuid not null references public.clases on delete cascade,
+  usuario_id  uuid not null references public.perfiles on delete cascade,
+  fecha       date not null,
+  creada_en   timestamptz not null default now(),
+  unique (clase_id, usuario_id, fecha)
+);
+
+-- Historial de reservas canceladas. Los nombres se guardan como texto (no
+-- solo el id) para que el registro siga siendo legible aunque la alumna o la
+-- clase se borren después; lo llena un disparador, nunca se escribe a mano.
+create table if not exists public.cancelaciones (
+  id                    uuid primary key default gen_random_uuid(),
+  usuario_id            uuid,
+  usuario_nombre        text not null,
+  clase_id              uuid,
+  clase_titulo          text not null,
+  fecha_clase           date not null,
+  cancelada_en          timestamptz not null default now(),
+  cancelada_por_id      uuid,
+  cancelada_por_nombre  text not null default 'Sistema'
+);
+
 create table if not exists public.promociones (
   id           uuid primary key default gen_random_uuid(),
   titulo       text not null,
@@ -147,6 +174,8 @@ create index if not exists reservas_fecha_idx       on public.reservas (fecha);
 create index if not exists reservas_clase_fecha_idx on public.reservas (clase_id, fecha);
 create index if not exists reservas_usuario_idx     on public.reservas (usuario_id, fecha desc);
 create index if not exists promociones_vigencia_idx on public.promociones (activa, desde, hasta);
+create index if not exists lista_espera_clase_idx   on public.lista_espera (clase_id, fecha);
+create index if not exists cancelaciones_fecha_idx  on public.cancelaciones (cancelada_en desc);
 
 -- -------------------------------------------------------------- funciones ---
 
@@ -268,6 +297,47 @@ create trigger reservas_validar
   before insert on public.reservas
   for each row execute function public.validar_reserva();
 
+-- Guarda una copia de cada reserva justo antes de borrarla, para que quede
+-- registro de quién canceló, qué clase y cuándo, sin depender de que la
+-- aplicación se acuerde de registrarlo por cada camino posible de borrado.
+create or replace function public.registrar_cancelacion()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  nombre_alumna text;
+  titulo_clase  text;
+  nombre_quien  text;
+begin
+  select nombre into nombre_alumna from public.perfiles where id = old.usuario_id;
+  select titulo into titulo_clase  from public.clases   where id = old.clase_id;
+  if auth.uid() is not null then
+    select nombre into nombre_quien from public.perfiles where id = auth.uid();
+  end if;
+
+  insert into public.cancelaciones (
+    usuario_id, usuario_nombre, clase_id, clase_titulo, fecha_clase,
+    cancelada_por_id, cancelada_por_nombre
+  ) values (
+    old.usuario_id,
+    coalesce(nombre_alumna, 'Alumna eliminada'),
+    old.clase_id,
+    coalesce(titulo_clase, 'Clase eliminada'),
+    old.fecha,
+    auth.uid(),
+    coalesce(nombre_quien, 'Sistema')
+  );
+  return old;
+end;
+$$;
+
+drop trigger if exists reservas_registrar_cancelacion on public.reservas;
+create trigger reservas_registrar_cancelacion
+  before delete on public.reservas
+  for each row execute function public.registrar_cancelacion();
+
 -- Ocupación por clase y fecha. Las alumnas necesitan saber cuántos cupos
 -- quedan sin poder ver quién reservó, así que se expone solo el agregado.
 create or replace function public.ocupacion(desde date, hasta date)
@@ -296,6 +366,8 @@ alter table public.clases              enable row level security;
 alter table public.reservas            enable row level security;
 alter table public.promociones         enable row level security;
 alter table public.promociones_leidas  enable row level security;
+alter table public.lista_espera        enable row level security;
+alter table public.cancelaciones       enable row level security;
 
 -- perfiles: cada quien ve el suyo; el staff los ve todos.
 drop policy if exists perfiles_leer on public.perfiles;
@@ -407,3 +479,33 @@ drop policy if exists promociones_leidas_propias on public.promociones_leidas;
 create policy promociones_leidas_propias on public.promociones_leidas
   for all to authenticated
   using (usuario_id = auth.uid()) with check (usuario_id = auth.uid());
+
+-- lista_espera: cada quien gestiona la suya; el staff la ve y la gestiona toda
+-- (para poder pasar a alguien a una reserva real cuando se libera un cupo).
+drop policy if exists lista_espera_leer on public.lista_espera;
+create policy lista_espera_leer on public.lista_espera
+  for select to authenticated
+  using (usuario_id = auth.uid() or public.es_admin());
+
+drop policy if exists lista_espera_crear on public.lista_espera;
+create policy lista_espera_crear on public.lista_espera
+  for insert to authenticated
+  with check (
+    public.es_admin()
+    or (
+      usuario_id = auth.uid()
+      and exists (select 1 from public.perfiles p where p.id = auth.uid() and p.activa)
+    )
+  );
+
+drop policy if exists lista_espera_borrar on public.lista_espera;
+create policy lista_espera_borrar on public.lista_espera
+  for delete to authenticated
+  using (usuario_id = auth.uid() or public.es_admin());
+
+-- cancelaciones: es un historial para el staff, nadie más lo necesita ver.
+-- Solo el disparador escribe aquí (via security definer), así que no hace
+-- falta política de insert/update/delete.
+drop policy if exists cancelaciones_leer on public.cancelaciones;
+create policy cancelaciones_leer on public.cancelaciones
+  for select to authenticated using (public.es_admin());
