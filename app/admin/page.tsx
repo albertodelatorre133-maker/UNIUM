@@ -26,10 +26,12 @@ const BORRADOR_BASE: Omit<Borrador, "hora" | "coachId"> = {
 };
 
 export default function AdminCalendarioPage() {
-  const { state, sesionesDeLaSemana, crearClase, eliminarClase, nombreCoach } = useStore();
+  const { state, sesionesDeLaSemana, crearClase, actualizarClase, eliminarClase, nombreCoach } =
+    useStore();
   const coachesActivas = state.coaches.filter((c) => c.activa);
   const [offset, setOffset] = useState(0);
   const [diaEnEdicion, setDiaEnEdicion] = useState<number | null>(null);
+  const [claseEditando, setClaseEditando] = useState<string | null>(null);
   const [borrador, setBorrador] = useState<Borrador>({
     ...BORRADOR_BASE,
     hora: "07:00",
@@ -47,6 +49,7 @@ export default function AdminCalendarioPage() {
   function abrirFormulario(day: number) {
     const config = state.config.find((c) => c.day === day);
     if (!config?.activo) return;
+    setClaseEditando(null);
     setDiaEnEdicion(day);
     setBorrador({
       ...BORRADOR_BASE,
@@ -55,9 +58,23 @@ export default function AdminCalendarioPage() {
     });
   }
 
+  function abrirEdicion(s: SesionDelDia) {
+    setClaseEditando(s.clase.id);
+    setDiaEnEdicion(s.clase.day);
+    setBorrador({
+      titulo: s.clase.titulo,
+      descripcion: s.clase.descripcion,
+      hora: s.clase.hora,
+      duracion: s.clase.duracion,
+      coachId: s.clase.coachId,
+      cupo: s.clase.cupo,
+      semanal: s.clase.semanal,
+    });
+  }
+
   async function guardar(day: number) {
     if (!borrador.titulo.trim()) return;
-    await crearClase({
+    const datos = {
       titulo: borrador.titulo.trim(),
       descripcion: borrador.descripcion.trim() || "Sesión guiada por una coach del equipo UNIUM.",
       day,
@@ -67,8 +84,14 @@ export default function AdminCalendarioPage() {
       cupo: borrador.cupo,
       semanal: borrador.semanal,
       fecha: borrador.semanal ? null : toISODate(addDays(lunes, day)),
-    });
+    };
+    if (claseEditando) {
+      await actualizarClase(claseEditando, datos);
+    } else {
+      await crearClase(datos);
+    }
     setDiaEnEdicion(null);
+    setClaseEditando(null);
   }
 
   const renderClase = useCallback(
@@ -88,6 +111,14 @@ export default function AdminCalendarioPage() {
               >
                 {s.reservadas}/{s.clase.cupo}
               </span>
+              <button
+                type="button"
+                aria-label={`Editar ${s.clase.titulo}`}
+                onClick={() => abrirEdicion(s)}
+                className="text-muted-dim opacity-0 transition hover:text-primary focus-visible:opacity-100 group-hover:opacity-100 max-lg:opacity-100"
+              >
+                <Icono nombre="edit" size={14} />
+              </button>
               <button
                 type="button"
                 aria-label={`Eliminar ${s.clase.titulo}`}
@@ -144,6 +175,7 @@ export default function AdminCalendarioPage() {
         </article>
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [eliminarClase, nombreCoach],
   );
 
@@ -174,6 +206,9 @@ export default function AdminCalendarioPage() {
             guardar(day);
           }}
         >
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">
+            {claseEditando ? "Editar clase" : "Nueva clase"}
+          </p>
           <input
             required
             autoFocus
@@ -253,12 +288,15 @@ export default function AdminCalendarioPage() {
           </label>
           <div className="flex gap-2">
             <button type="submit" className="btn-gold flex-1 !rounded-lg !py-2 text-[10.5px]">
-              Guardar
+              {claseEditando ? "Guardar cambios" : "Guardar"}
             </button>
             <button
               type="button"
               className="btn-ghost !rounded-lg !px-3 !py-2 text-[10.5px]"
-              onClick={() => setDiaEnEdicion(null)}
+              onClick={() => {
+                setDiaEnEdicion(null);
+                setClaseEditando(null);
+              }}
             >
               Cancelar
             </button>
@@ -267,7 +305,7 @@ export default function AdminCalendarioPage() {
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [diaEnEdicion, borrador, state.config, lunes],
+    [diaEnEdicion, claseEditando, borrador, state.config, lunes],
   );
 
   return (
@@ -315,6 +353,7 @@ export default function AdminCalendarioPage() {
         onOffset={(n) => {
           setOffset(n);
           setDiaEnEdicion(null);
+          setClaseEditando(null);
         }}
         renderClase={renderClase}
         pieDia={pieDia}

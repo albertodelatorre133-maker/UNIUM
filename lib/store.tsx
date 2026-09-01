@@ -85,6 +85,7 @@ interface StoreValue {
   actualizarMetrica: (id: string, cambios: Partial<Metrica>) => Promise<void>;
   eliminarMetrica: (id: string) => Promise<void>;
   crearClase: (clase: Omit<ClassSession, "id">) => Promise<void>;
+  actualizarClase: (id: string, cambios: Partial<Omit<ClassSession, "id">>) => Promise<void>;
   eliminarClase: (id: string) => Promise<void>;
   reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
   cancelar: (bookingId: string) => Promise<void>;
@@ -482,6 +483,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setState((s) => ({ ...s, classes: [...s.classes, { ...clase, id: id("cls") }] }));
+    },
+    [remoto, recargar],
+  );
+
+  const actualizarClase = useCallback(
+    async (claseId: string, cambios: Partial<Omit<ClassSession, "id">>) => {
+      if (remoto) {
+        await datosClases.actualizarClase(claseId, cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        classes: s.classes.map((c) => (c.id === claseId ? { ...c, ...cambios } : c)),
+      }));
     },
     [remoto, recargar],
   );
@@ -951,6 +967,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     actualizarMetrica,
     eliminarMetrica,
     crearClase,
+    actualizarClase,
     eliminarClase,
     reservar,
     cancelar,
