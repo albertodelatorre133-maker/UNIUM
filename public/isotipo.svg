@@ -1,14 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="UNIUM">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f7e9a8"/>
-      <stop offset="45%" stop-color="#d4af37"/>
+    <linearGradient id="oroIso" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#fbf0bf"/>
+      <stop offset="38%" stop-color="#e3c358"/>
+      <stop offset="70%" stop-color="#c9a227"/>
       <stop offset="100%" stop-color="#8b6e1e"/>
     </linearGradient>
   </defs>
-  <circle cx="200" cy="200" r="188" fill="none" stroke="url(#g)" stroke-width="6" opacity="0.8"/>
-  <circle cx="200" cy="112" r="17" fill="url(#g)"/>
-  <path d="M104 108 v112 a60 60 0 0 0 120 0" fill="none" stroke="url(#g)" stroke-width="24" stroke-linecap="round"/>
-  <path d="M154 148 q46 -48 92 0" fill="none" stroke="url(#g)" stroke-width="15" stroke-linecap="round"/>
-  <path d="M176 138 L210 258 L242 176 L274 258 L308 138" fill="none" stroke="url(#g)" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="200" cy="200" r="186" fill="none" stroke="url(#oroIso)" stroke-width="9" opacity="0.85"/>
+  <!-- Mismo monograma que el logotipo, escalado para llenar el anillo -->
+  <g transform="translate(-158 -35) scale(0.7)">
+    <g fill="none" stroke="url(#oroIso)" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M366 240 V390 a76 76 0 0 0 152 0 V240" stroke-width="36"/>
+      <path d="M462 240 L514 452 L558 334 L602 452 L656 240" stroke-width="30"/>
+      <path d="M430 300 Q508 230 586 300" stroke-width="18"/>
+    </g>
+    <circle cx="508" cy="228" r="24" fill="url(#oroIso)"/>
+  </g>
 </svg>

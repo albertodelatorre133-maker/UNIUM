@@ -10,6 +10,13 @@ dibuja un marcador con el isotipo mientras el archivo no exista.
 | `entrenamiento-fuerza.jpg` | Sección "El método UNIUM" | Vertical, una alumna trabajando |
 | `sala-estudio.jpg` | Sección "El estudio" (opcional) | Horizontal, sala vacía o ambiente |
 
-Recomendaciones: JPG o WebP, lado largo de 1600–2000 px y menos de 400 KB por
+## Logotipo original
+
+Si tienes el archivo original del logo (PNG con fondo negro), súbelo a `public/`
+como `logo.png` y, si quieres, una versión sin texto como `isotipo.png`. Los
+componentes de marca los usan de forma automática y solo recurren a la
+recreación en SVG cuando esos archivos no existen.
+
+Recomendaciones para las fotos: JPG o WebP, lado largo de 1600–2000 px y menos de 400 KB por
 archivo. Las imágenes se recortan con `object-cover`, así que deja aire
 alrededor del motivo principal.

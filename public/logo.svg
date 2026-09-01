@@ -1,44 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="UNIUM Wellness Training">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="UNIUM Wellness Training — Unidos somos más fuertes">
   <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f7e9a8"/>
-      <stop offset="45%" stop-color="#d4af37"/>
+    <linearGradient id="oro" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#fbf0bf"/>
+      <stop offset="38%" stop-color="#e3c358"/>
+      <stop offset="70%" stop-color="#c9a227"/>
       <stop offset="100%" stop-color="#8b6e1e"/>
     </linearGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+    <filter id="halo" x="-45%" y="-45%" width="190%" height="190%">
       <feGaussianBlur stdDeviation="14" result="b"/>
-      <feMerge>
-        <feMergeNode in="b"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Halo más contenido para el monograma, que va cerca del texto -->
+    <filter id="haloSuave" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
   <rect width="1024" height="1024" fill="#000000"/>
-  <circle cx="512" cy="512" r="400" fill="none" stroke="url(#gold)" stroke-width="6" filter="url(#glow)" opacity="0.95"/>
+  <circle cx="512" cy="512" r="400" fill="none" stroke="#f6d976" stroke-width="7" filter="url(#halo)" opacity="0.95"/>
 
-  <g filter="url(#glow)">
-    <!-- Monograma U W con figura humana -->
-    <circle cx="512" cy="274" r="26" fill="url(#gold)"/>
-    <path d="M352 268 v170 a92 92 0 0 0 184 0" fill="none" stroke="url(#gold)" stroke-width="34" stroke-linecap="round"/>
-    <path d="M436 330 q76 -78 152 0" fill="none" stroke="url(#gold)" stroke-width="22" stroke-linecap="round"/>
-    <path d="M470 316 L522 500 L570 372 L618 500 L670 316" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Monograma U + W con la figura humana -->
+  <g filter="url(#haloSuave)">
+    <g fill="none" stroke="url(#oro)" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M366 240 V390 a76 76 0 0 0 152 0 V240" stroke-width="36"/>
+      <path d="M462 240 L514 452 L558 334 L602 452 L656 240" stroke-width="30"/>
+      <path d="M430 300 Q508 230 586 300" stroke-width="18"/>
+    </g>
+    <circle cx="508" cy="228" r="24" fill="url(#oro)"/>
   </g>
 
-  <text x="512" y="600" text-anchor="middle" fill="url(#gold)" font-family="Archivo Narrow, Helvetica, Arial, sans-serif" font-size="112" letter-spacing="26">UNIUM</text>
+  <!--
+    textLength + lengthAdjust fijan el ancho de cada línea: aunque el visor no
+    tenga la tipografía de la marca, las letras conservan su posición.
+  -->
+  <text x="512" y="602" text-anchor="middle" textLength="566" lengthAdjust="spacing"
+        fill="url(#oro)" font-family="'Archivo Narrow','Helvetica Neue',Helvetica,Arial,sans-serif"
+        font-size="116" font-weight="500">UNIUM</text>
 
-  <g fill="#d4af37" opacity="0.9">
-    <rect x="136" y="658" width="72" height="3"/>
-    <rect x="816" y="658" width="72" height="3"/>
+  <g fill="#d4af37" opacity="0.85">
+    <rect x="166" y="661" width="74" height="3"/>
+    <rect x="784" y="661" width="74" height="3"/>
   </g>
-  <text x="512" y="672" text-anchor="middle" fill="#d4af37" font-family="Hanken Grotesk, Helvetica, Arial, sans-serif" font-size="40" letter-spacing="9">WELLNESS TRAINING</text>
-  <text x="512" y="738" text-anchor="middle" fill="#c9a94a" opacity="0.85" font-family="Hanken Grotesk, Helvetica, Arial, sans-serif" font-size="32" letter-spacing="7">UNIDOS SOMOS MÁS FUERTES</text>
+  <text x="512" y="674" text-anchor="middle" textLength="502" lengthAdjust="spacing"
+        fill="#e0bd5a" font-family="'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif"
+        font-size="41">WELLNESS TRAINING</text>
 
-  <g transform="translate(512 812)" fill="#d4af37">
-    <rect x="-58" y="-11" width="10" height="22" rx="3"/>
-    <rect x="-44" y="-17" width="13" height="34" rx="4"/>
+  <text x="512" y="742" text-anchor="middle" textLength="546" lengthAdjust="spacing"
+        fill="#c9a94a" opacity="0.9" font-family="'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif"
+        font-size="33">UNIDOS SOMOS MÁS FUERTES</text>
+
+  <g transform="translate(512 814)" fill="#d4af37">
+    <rect x="-59" y="-11" width="10" height="22" rx="3"/>
+    <rect x="-45" y="-18" width="13" height="36" rx="4"/>
     <rect x="-27" y="-5" width="54" height="10" rx="4"/>
-    <rect x="31" y="-17" width="13" height="34" rx="4"/>
-    <rect x="48" y="-11" width="10" height="22" rx="3"/>
+    <rect x="32" y="-18" width="13" height="36" rx="4"/>
+    <rect x="49" y="-11" width="10" height="22" rx="3"/>
   </g>
 </svg>
