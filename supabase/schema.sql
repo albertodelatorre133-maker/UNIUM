@@ -39,6 +39,32 @@ create table if not exists public.configuracion_dias (
   constraint rango_horario_valido check (apertura < cierre)
 );
 
+-- Datos generales del estudio (nombre, dirección, contacto...), editables
+-- desde /admin/configuracion. Fila única: el id fijo en 1 es el truco
+-- habitual para tablas "singleton" en Postgres.
+create table if not exists public.configuracion_estudio (
+  id          smallint primary key default 1 check (id = 1),
+  nombre      text not null default '',
+  lema        text not null default '',
+  direccion   text not null default '',
+  ciudad      text not null default '',
+  telefono    text not null default '',
+  email       text not null default '',
+  instagram   text not null default '',
+  mapa        text not null default ''
+);
+
+-- Los "cuatro pilares" del método, mostrados en la landing y editables desde
+-- el panel. `orden` decide en qué posición aparece cada uno.
+create table if not exists public.pilares (
+  id         uuid primary key default gen_random_uuid(),
+  icono      text not null default 'fitness_center',
+  titulo     text not null,
+  texto      text not null default '',
+  orden      smallint not null default 0,
+  creada_en  timestamptz not null default now()
+);
+
 -- Coaches del estudio. clases.coach_id referencia esta tabla, así que
 -- renombrar una coach aquí se refleja de inmediato en sus clases.
 create table if not exists public.coaches (
@@ -103,6 +129,7 @@ create table if not exists public.promociones_leidas (
 );
 
 -- --------------------------------------------------------------- índices ----
+create index if not exists pilares_orden_idx        on public.pilares (orden);
 create index if not exists coaches_activa_idx       on public.coaches (activa);
 create index if not exists clases_coach_idx         on public.clases (coach_id);
 create index if not exists clases_dia_hora_idx      on public.clases (day, hora);
@@ -249,9 +276,11 @@ $$;
 grant execute on function public.ocupacion(date, date) to anon, authenticated;
 
 -- ------------------------------------------------- seguridad por filas -----
-alter table public.perfiles            enable row level security;
-alter table public.configuracion_dias  enable row level security;
-alter table public.coaches             enable row level security;
+alter table public.perfiles              enable row level security;
+alter table public.configuracion_dias    enable row level security;
+alter table public.configuracion_estudio enable row level security;
+alter table public.pilares               enable row level security;
+alter table public.coaches               enable row level security;
 alter table public.clases              enable row level security;
 alter table public.reservas            enable row level security;
 alter table public.promociones         enable row level security;
@@ -277,6 +306,25 @@ create policy configuracion_leer on public.configuracion_dias
 
 drop policy if exists configuracion_escribir on public.configuracion_dias;
 create policy configuracion_escribir on public.configuracion_dias
+  for all to authenticated using (public.es_admin()) with check (public.es_admin());
+
+-- configuracion_estudio: lectura pública, solo el staff la edita. Fila única
+-- sembrada por semilla.sql, así que no hace falta política de insert/delete.
+drop policy if exists configuracion_estudio_leer on public.configuracion_estudio;
+create policy configuracion_estudio_leer on public.configuracion_estudio
+  for select to anon, authenticated using (true);
+
+drop policy if exists configuracion_estudio_editar on public.configuracion_estudio;
+create policy configuracion_estudio_editar on public.configuracion_estudio
+  for update to authenticated using (public.es_admin()) with check (public.es_admin());
+
+-- pilares: lectura pública, gestión solo del staff.
+drop policy if exists pilares_leer on public.pilares;
+create policy pilares_leer on public.pilares
+  for select to anon, authenticated using (true);
+
+drop policy if exists pilares_escribir on public.pilares;
+create policy pilares_escribir on public.pilares
   for all to authenticated using (public.es_admin()) with check (public.es_admin());
 
 -- coaches: la landing solo ve a las activas; el staff las ve y gestiona todas.

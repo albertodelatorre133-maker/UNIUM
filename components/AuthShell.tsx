@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Isotipo } from "./Marca";
-import { ESTUDIO } from "@/lib/seed";
+import { useStore } from "@/lib/store";
 
 export function AuthShell({
   titulo,
@@ -13,6 +15,7 @@ export function AuthShell({
   children: React.ReactNode;
   pie: React.ReactNode;
 }) {
+  const { hidratado, state } = useStore();
   return (
     <main className="relative flex min-h-dvh flex-col justify-center overflow-hidden px-4 py-10 corto:py-6 sm:px-5 sm:py-12">
       <div className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/10 blur-[150px]" />
@@ -57,7 +60,7 @@ export function AuthShell({
           {pie}
         </div>
         <p className="mt-5 text-center font-mono text-[9px] uppercase tracking-[0.22em] text-muted-dim corto:hidden sm:mt-7 sm:text-[10px]">
-          {ESTUDIO.lema}
+          {hidratado ? state.estudio.lema : ""}
         </p>
       </div>
     </main>

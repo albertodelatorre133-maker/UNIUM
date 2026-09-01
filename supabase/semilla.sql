@@ -16,6 +16,35 @@ insert into public.configuracion_dias (day, activo, apertura, cierre) values
   (6, false, '08:00', '11:00')
 on conflict (day) do nothing;
 
+-- Datos generales del estudio (fila única).
+insert into public.configuracion_estudio (id, nombre, lema, direccion, ciudad, telefono, email, instagram, mapa)
+values (
+  1,
+  'UNIUM Wellness Training',
+  'Unidos somos más fuertes',
+  'Calle 93B #13-45, Chicó Norte',
+  'Bogotá, Colombia',
+  '+57 320 448 9012',
+  'hola@unium.fit',
+  '@unium.wellness',
+  'https://www.openstreetmap.org/export/embed.html?bbox=-74.0530%2C4.6720%2C-74.0400%2C4.6800&layer=mapnik&marker=4.6760%2C-74.0465'
+)
+on conflict (id) do nothing;
+
+-- Los cuatro pilares del método
+insert into public.pilares (icono, titulo, texto, orden)
+select * from (values
+  ('fitness_center', 'Fuerza con técnica',
+   'Progresiones medidas, cargas conscientes y corrección constante. Cada bloque se construye sobre el anterior.', 0),
+  ('self_improvement', 'Movilidad y core',
+   'Respiración, control profundo y rangos articulares reales. La base sobre la que se sostiene la fuerza.', 1),
+  ('monitor_heart', 'Intensidad medida',
+   'Intervalos diseñados con control de ritmo cardiaco y recuperación activa. Intensidad, nunca improvisación.', 2),
+  ('diversity_3', 'Grupos reducidos',
+   'Máximo 12 alumnas por sesión para que la coach acompañe cada repetición. Unidos somos más fuertes.', 3)
+) as nuevas (icono, titulo, texto, orden)
+where not exists (select 1 from public.pilares p where p.titulo = nuevas.titulo);
+
 -- Coaches
 insert into public.coaches (nombre, especialidad, bio)
 select * from (values

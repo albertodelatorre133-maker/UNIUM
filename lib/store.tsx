@@ -9,8 +9,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { COACHES, crearEstadoInicial } from "./seed";
-import type { AppState, Booking, ClassSession, Coach, DayConfig, Promocion, User } from "./types";
+import { COACHES, ESTUDIO, PILARES_INICIALES, crearEstadoInicial } from "./seed";
+import type {
+  AppState,
+  Booking,
+  ClassSession,
+  Coach,
+  DayConfig,
+  Estudio,
+  Pilar,
+  Promocion,
+  User,
+} from "./types";
 import { addDays, dayIndex, fromISODate, hoyISO, startOfWeek, toISODate } from "./date";
 import { clienteNavegador, hayBaseDeDatos } from "./supabase/cliente";
 import { aReserva, aUsuario } from "./datos/comun";
@@ -20,6 +30,8 @@ import * as datosClases from "./datos/clases";
 import * as datosReservas from "./datos/reservas";
 import * as datosPromos from "./datos/promociones";
 import * as datosCoaches from "./datos/coaches";
+import * as datosEstudio from "./datos/estudio";
+import * as datosPilares from "./datos/pilares";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -55,6 +67,10 @@ interface StoreValue {
   }) => Promise<{ ok: boolean; error?: string; sesionActiva?: boolean }>;
   salir: () => Promise<void>;
   guardarConfig: (config: DayConfig[]) => Promise<void>;
+  guardarEstudio: (cambios: Partial<Estudio>) => Promise<void>;
+  crearPilar: (pilar: Omit<Pilar, "id">) => Promise<void>;
+  actualizarPilar: (id: string, cambios: Partial<Pilar>) => Promise<void>;
+  eliminarPilar: (id: string) => Promise<void>;
   crearClase: (clase: Omit<ClassSession, "id">) => Promise<void>;
   eliminarClase: (id: string) => Promise<void>;
   reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
@@ -94,6 +110,8 @@ function leerEstado(): AppState {
           ...parsed,
           promociones: parsed.promociones ?? [],
           coaches: parsed.coaches ?? COACHES,
+          estudio: parsed.estudio ?? ESTUDIO,
+          pilares: parsed.pilares ?? PILARES_INICIALES,
           leidas: parsed.leidas ?? {},
         };
       }
@@ -108,6 +126,17 @@ function id(prefijo: string): string {
   return `${prefijo}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+const ESTUDIO_VACIO: Estudio = {
+  nombre: "",
+  lema: "",
+  direccion: "",
+  ciudad: "",
+  telefono: "",
+  email: "",
+  instagram: "",
+  mapa: "",
+};
+
 const ESTADO_VACIO: AppState = {
   users: [],
   config: [],
@@ -115,6 +144,8 @@ const ESTADO_VACIO: AppState = {
   bookings: [],
   promociones: [],
   coaches: [],
+  estudio: ESTUDIO_VACIO,
+  pilares: [],
   leidas: {},
   sessionUserId: null,
 };
@@ -130,15 +161,18 @@ async function cargarEstadoRemoto(): Promise<AppState> {
   const { data: sesion } = await sb.auth.getUser();
   const sessionUserId = sesion.user?.id ?? null;
 
-  const [config, classes, promociones, coaches, perfiles, reservas, leidasFila] = await Promise.all([
-    datosConfig.leerConfiguracion(),
-    datosClases.listarClases(),
-    datosPromos.listarPromociones(),
-    datosCoaches.listarCoaches(),
-    sb.from("perfiles").select("*"),
-    sb.from("reservas").select("*"),
-    sb.from("promociones_leidas").select("*"),
-  ]);
+  const [config, classes, promociones, coaches, estudio, pilares, perfiles, reservas, leidasFila] =
+    await Promise.all([
+      datosConfig.leerConfiguracion(),
+      datosClases.listarClases(),
+      datosPromos.listarPromociones(),
+      datosCoaches.listarCoaches(),
+      datosEstudio.leerEstudio(),
+      datosPilares.listarPilares(),
+      sb.from("perfiles").select("*"),
+      sb.from("reservas").select("*"),
+      sb.from("promociones_leidas").select("*"),
+    ]);
 
   if (perfiles.error) throw new Error(perfiles.error.message);
   if (reservas.error) throw new Error(reservas.error.message);
@@ -156,6 +190,8 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     bookings: (reservas.data ?? []).map(aReserva),
     promociones,
     coaches,
+    estudio,
+    pilares,
     leidas,
     sessionUserId,
   };
@@ -283,6 +319,57 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setState((s) => ({ ...s, config }));
+    },
+    [remoto, recargar],
+  );
+
+  const guardarEstudio = useCallback(
+    async (cambios: Partial<Estudio>) => {
+      if (remoto) {
+        await datosEstudio.guardarEstudio(cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, estudio: { ...s.estudio, ...cambios } }));
+    },
+    [remoto, recargar],
+  );
+
+  const crearPilar = useCallback(
+    async (pilar: Omit<Pilar, "id">) => {
+      if (remoto) {
+        await datosPilares.crearPilar(pilar);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, pilares: [...s.pilares, { ...pilar, id: id("plr") }] }));
+    },
+    [remoto, recargar],
+  );
+
+  const actualizarPilar = useCallback(
+    async (pilarId: string, cambios: Partial<Pilar>) => {
+      if (remoto) {
+        await datosPilares.actualizarPilar(pilarId, cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        pilares: s.pilares.map((p) => (p.id === pilarId ? { ...p, ...cambios } : p)),
+      }));
+    },
+    [remoto, recargar],
+  );
+
+  const eliminarPilar = useCallback(
+    async (pilarId: string) => {
+      if (remoto) {
+        await datosPilares.eliminarPilar(pilarId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, pilares: s.pilares.filter((p) => p.id !== pilarId) }));
     },
     [remoto, recargar],
   );
@@ -640,6 +727,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     registrar,
     salir,
     guardarConfig,
+    guardarEstudio,
+    crearPilar,
+    actualizarPilar,
+    eliminarPilar,
     crearClase,
     eliminarClase,
     reservar,

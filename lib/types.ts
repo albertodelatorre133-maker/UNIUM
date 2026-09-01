@@ -70,6 +70,27 @@ export interface Coach {
   creadaEn: string;
 }
 
+/** Datos generales del estudio, editables desde /admin/configuracion. */
+export interface Estudio {
+  nombre: string;
+  lema: string;
+  direccion: string;
+  ciudad: string;
+  telefono: string;
+  email: string;
+  instagram: string;
+  mapa: string;
+}
+
+/** Uno de los "pilares" del método, mostrados en la landing. */
+export interface Pilar {
+  id: string;
+  icono: string;
+  titulo: string;
+  texto: string;
+  orden: number;
+}
+
 export interface AppState {
   users: User[];
   config: DayConfig[];
@@ -77,6 +98,8 @@ export interface AppState {
   bookings: Booking[];
   promociones: Promocion[];
   coaches: Coach[];
+  estudio: Estudio;
+  pilares: Pilar[];
   /** Promociones ya vistas por cada alumna: userId -> ids de promocion. */
   leidas: Record<string, string[]>;
   sessionUserId: string | null;

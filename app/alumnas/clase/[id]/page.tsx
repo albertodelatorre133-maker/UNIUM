@@ -6,7 +6,6 @@ import { Suspense, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { Cargando } from "@/components/Guard";
 import { useStore } from "@/lib/store";
-import { ESTUDIO } from "@/lib/seed";
 import { formatoLargo, hoyISO, sumarMinutos } from "@/lib/date";
 import { inicialesDe } from "@/lib/texto";
 
@@ -150,29 +149,29 @@ function DetalleClase() {
           <section className="glass overflow-hidden">
             <iframe
               title="Ubicación del estudio"
-              src={ESTUDIO.mapa}
+              src={state.estudio.mapa}
               className="h-56 w-full border-0 grayscale contrast-125"
               loading="lazy"
             />
             <div className="p-6">
               <span className="eyebrow">Ubicación</span>
               <h2 className="mt-3 font-display text-lg font-semibold uppercase tracking-wide">
-                {ESTUDIO.nombre}
+                {state.estudio.nombre}
               </h2>
               <p className="mt-2 text-sm text-muted">
-                {ESTUDIO.direccion}
+                {state.estudio.direccion}
                 <br />
-                {ESTUDIO.ciudad}
+                {state.estudio.ciudad}
               </p>
               <div className="my-5 hairline" />
               <div className="space-y-3 text-sm text-muted-soft">
                 <p className="flex items-center gap-3">
                   <Icono nombre="call" size={16} className="text-primary" />
-                  {ESTUDIO.telefono}
+                  {state.estudio.telefono}
                 </p>
                 <p className="flex items-center gap-3">
                   <Icono nombre="mail" size={16} className="text-primary" />
-                  {ESTUDIO.email}
+                  {state.estudio.email}
                 </p>
               </div>
             </div>

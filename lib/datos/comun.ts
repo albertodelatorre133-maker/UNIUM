@@ -1,9 +1,11 @@
-import type { Booking, ClassSession, Coach, DayConfig, Promocion, User } from "@/lib/types";
+import type { Booking, ClassSession, Coach, DayConfig, Estudio, Pilar, Promocion, User } from "@/lib/types";
 import type {
   ClaseFila,
   CoachFila,
   DiaFila,
+  EstudioFila,
   PerfilFila,
+  PilarFila,
   PromocionFila,
   ReservaFila,
 } from "@/lib/supabase/tipos";
@@ -83,6 +85,29 @@ export function aCoach(fila: CoachFila): Coach {
     bio: fila.bio,
     activa: fila.activa,
     creadaEn: fila.creada_en,
+  };
+}
+
+export function aEstudio(fila: EstudioFila): Estudio {
+  return {
+    nombre: fila.nombre,
+    lema: fila.lema,
+    direccion: fila.direccion,
+    ciudad: fila.ciudad,
+    telefono: fila.telefono,
+    email: fila.email,
+    instagram: fila.instagram,
+    mapa: fila.mapa,
+  };
+}
+
+export function aPilar(fila: PilarFila): Pilar {
+  return {
+    id: fila.id,
+    icono: fila.icono,
+    titulo: fila.titulo,
+    texto: fila.texto,
+    orden: fila.orden,
   };
 }
 

@@ -1,5 +1,14 @@
 import { addDays, startOfWeek, toISODate } from "./date";
-import type { AppState, Booking, ClassSession, Coach, DayConfig, Promocion, User } from "./types";
+import type {
+  AppState,
+  Booking,
+  ClassSession,
+  Coach,
+  DayConfig,
+  Pilar,
+  Promocion,
+  User,
+} from "./types";
 
 export const COACHES: Coach[] = [
   {
@@ -42,6 +51,42 @@ export const ESTUDIO = {
   instagram: "@unium.wellness",
   mapa: "https://www.openstreetmap.org/export/embed.html?bbox=-74.0530%2C4.6720%2C-74.0400%2C4.6800&layer=mapnik&marker=4.6760%2C-74.0465",
 };
+
+/** "Los cuatro pilares" del método, mostrados en la landing y editables desde /admin/configuracion. */
+export const PILARES_INICIALES: Pilar[] = [
+  {
+    id: "plr-1",
+    icono: "fitness_center",
+    titulo: "Fuerza con técnica",
+    texto:
+      "Progresiones medidas, cargas conscientes y corrección constante. Cada bloque se construye sobre el anterior.",
+    orden: 0,
+  },
+  {
+    id: "plr-2",
+    icono: "self_improvement",
+    titulo: "Movilidad y core",
+    texto:
+      "Respiración, control profundo y rangos articulares reales. La base sobre la que se sostiene la fuerza.",
+    orden: 1,
+  },
+  {
+    id: "plr-3",
+    icono: "monitor_heart",
+    titulo: "Intensidad medida",
+    texto:
+      "Intervalos diseñados con control de ritmo cardiaco y recuperación activa. Intensidad, nunca improvisación.",
+    orden: 2,
+  },
+  {
+    id: "plr-4",
+    icono: "diversity_3",
+    titulo: "Grupos reducidos",
+    texto:
+      "Máximo 12 alumnas por sesión para que la coach acompañe cada repetición. Unidos somos más fuertes.",
+    orden: 3,
+  },
+];
 
 const CONFIG_INICIAL: DayConfig[] = [
   { day: 0, activo: true, apertura: "05:30", cierre: "20:00" },
@@ -303,6 +348,8 @@ export function crearEstadoInicial(): AppState {
     bookings,
     promociones: promocionesIniciales(new Date()),
     coaches: COACHES,
+    estudio: ESTUDIO,
+    pilares: PILARES_INICIALES,
     leidas: {},
     sessionUserId: null,
   };

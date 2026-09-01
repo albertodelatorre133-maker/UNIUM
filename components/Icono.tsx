@@ -19,6 +19,8 @@ import {
   Dumbbell,
   Eye,
   EyeOff,
+  Flame,
+  Heart,
   HeartPulse,
   Home,
   Instagram,
@@ -40,6 +42,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Tag,
+  Target,
   Trash2,
   TrendingUp,
   Undo2,
@@ -78,6 +81,9 @@ const ICONOS: Record<string, LucideIcon> = {
   event_available: CalendarCheck,
   event_busy: CalendarX,
   fitness_center: Dumbbell,
+  local_fire_department: Flame,
+  favorite: Heart,
+  target: Target,
   group: Users,
   home: Home,
   groups: Users,
@@ -108,6 +114,20 @@ const ICONOS: Record<string, LucideIcon> = {
   visibility: Eye,
   visibility_off: EyeOff,
 };
+
+/** Opciones curadas para el selector de icono de un pilar del método. */
+export const ICONOS_PILARES = [
+  { valor: "fitness_center", etiqueta: "Pesas" },
+  { valor: "self_improvement", etiqueta: "Movilidad" },
+  { valor: "monitor_heart", etiqueta: "Ritmo cardiaco" },
+  { valor: "diversity_3", etiqueta: "Grupo" },
+  { valor: "local_fire_department", etiqueta: "Intensidad" },
+  { valor: "favorite", etiqueta: "Bienestar" },
+  { valor: "target", etiqueta: "Objetivo" },
+  { valor: "trending_up", etiqueta: "Progreso" },
+  { valor: "schedule", etiqueta: "Constancia" },
+  { valor: "shield_person", etiqueta: "Acompañamiento" },
+] as const;
 
 export function Icono({
   nombre,

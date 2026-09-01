@@ -5,7 +5,9 @@ import { Foto } from "@/components/Foto";
 import { LogoCompleto } from "@/components/Marca";
 import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
-import { CLASES, COACHES, ESTUDIO, FOTOS } from "@/lib/seed";
+import { MetodoInicio } from "@/components/MetodoInicio";
+import { ChipCiudad, LemaFooter, UbicacionInicio } from "@/components/EstudioInicio";
+import { CLASES, COACHES, FOTOS } from "@/lib/seed";
 import { DIAS, sumarMinutos } from "@/lib/date";
 
 const METRICAS = [
@@ -13,33 +15,6 @@ const METRICAS = [
   { valor: "6", etiqueta: "Días de operación" },
   { valor: "45'", etiqueta: "Sesión promedio" },
   { valor: "100%", etiqueta: "Entrenamiento guiado" },
-];
-
-const METODO = [
-  {
-    icono: "fitness_center",
-    titulo: "Fuerza con técnica",
-    texto:
-      "Progresiones medidas, cargas conscientes y corrección constante. Cada bloque se construye sobre el anterior.",
-  },
-  {
-    icono: "self_improvement",
-    titulo: "Movilidad y core",
-    texto:
-      "Respiración, control profundo y rangos articulares reales. La base sobre la que se sostiene la fuerza.",
-  },
-  {
-    icono: "monitor_heart",
-    titulo: "Intensidad medida",
-    texto:
-      "Intervalos diseñados con control de ritmo cardiaco y recuperación activa. Intensidad, nunca improvisación.",
-  },
-  {
-    icono: "diversity_3",
-    titulo: "Grupos reducidos",
-    texto:
-      "Máximo 12 alumnas por sesión para que la coach acompañe cada repetición. Unidos somos más fuertes.",
-  },
 ];
 
 function PreviewHorario() {
@@ -140,10 +115,7 @@ export default function LandingPage() {
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6">
-                <span className="chip-gold">
-                  <Icono nombre="location_on" size={12} />
-                  {ESTUDIO.ciudad}
-                </span>
+                <ChipCiudad />
                 <p className="mt-3 font-display text-xl font-semibold uppercase leading-tight tracking-wide text-white">
                   Grupos de máximo
                   <br />
@@ -179,19 +151,7 @@ export default function LandingPage() {
             </Foto>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            {METODO.map((m) => (
-              <article key={m.titulo} className="glass group p-6 transition hover:border-primary/30">
-                <span className="grid h-12 w-12 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-                  <Icono nombre={m.icono} size={20} />
-                </span>
-                <h3 className="mt-5 font-display text-xl font-semibold uppercase tracking-wide text-white">
-                  {m.titulo}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted">{m.texto}</p>
-              </article>
-            ))}
-          </div>
+          <MetodoInicio />
         </div>
       </section>
 
@@ -221,51 +181,7 @@ export default function LandingPage() {
       <CoachesInicio />
 
       {/* UBICACIÓN */}
-      <section id="ubicacion" className="section scroll-mt-24 py-20">
-        <div className="grid gap-10 lg:grid-cols-2">
-          <div>
-            <span className="eyebrow">Dónde entrenamos</span>
-            <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
-              El <span className="gold-text">estudio</span>
-            </h2>
-            <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted">
-              Un espacio pensado al detalle: iluminación cálida, equipamiento premium y aforo
-              limitado. Todo diseñado para que la sesión sea tuya.
-            </p>
-            <ul className="mt-8 space-y-4">
-              {[
-                { icono: "location_on", texto: `${ESTUDIO.direccion} · ${ESTUDIO.ciudad}` },
-                { icono: "call", texto: ESTUDIO.telefono },
-                { icono: "mail", texto: ESTUDIO.email },
-                { icono: "photo_camera", texto: ESTUDIO.instagram },
-              ].map((i) => (
-                <li key={i.icono} className="flex items-center gap-4">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-primary">
-                    <Icono nombre={i.icono} size={16} />
-                  </span>
-                  <span className="text-sm text-muted-soft">{i.texto}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <Foto
-              {...FOTOS.sala}
-              respaldo={FOTOS.claseGrupal.src}
-              className="aspect-video rounded-2xl border border-white/10"
-            />
-            <div className="glass overflow-hidden p-2">
-              <iframe
-                title="Ubicación del estudio UNIUM"
-                src={ESTUDIO.mapa}
-                className="h-[260px] w-full rounded-xl border-0 grayscale contrast-125"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <UbicacionInicio />
 
       {/* CTA FINAL */}
       <section className="section py-20">
@@ -296,7 +212,7 @@ export default function LandingPage() {
             © {new Date().getFullYear()} UNIUM Wellness Training
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary/70">
-            {ESTUDIO.lema}
+            <LemaFooter />
           </p>
           <Link
             href="/admin"

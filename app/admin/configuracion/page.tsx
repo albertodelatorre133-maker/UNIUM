@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Icono } from "@/components/Icono";
+import { Icono, ICONOS_PILARES } from "@/components/Icono";
 import { useStore } from "@/lib/store";
 import { DIAS } from "@/lib/date";
-import type { DayConfig } from "@/lib/types";
+import type { DayConfig, Estudio, Pilar } from "@/lib/types";
 
 const HORAS = Array.from({ length: 24 * 2 }, (_, i) => {
   const h = Math.floor(i / 2);
@@ -12,7 +12,56 @@ const HORAS = Array.from({ length: 24 * 2 }, (_, i) => {
   return `${String(h).padStart(2, "0")}:${m}`;
 });
 
+const PESTANAS = [
+  { id: "horario", label: "Horario", icono: "schedule" },
+  { id: "estudio", label: "Estudio", icono: "location_on" },
+  { id: "metodo", label: "Método", icono: "fitness_center" },
+] as const;
+
+type Pestana = (typeof PESTANAS)[number]["id"];
+
 export default function ConfiguracionPage() {
+  const [tab, setTab] = useState<Pestana>("horario");
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <span className="eyebrow hidden sm:block">Ajustes del estudio</span>
+        <h1 className="font-display text-[28px] font-bold uppercase tracking-tight sm:mt-2 sm:text-4xl lg:text-5xl">
+          Configuración
+        </h1>
+        <p className="mt-2 max-w-2xl text-[13px] text-muted sm:text-sm">
+          Todo lo que ven las alumnas fuera del calendario: horarios, datos de contacto y el método
+          que se muestra en la página de inicio.
+        </p>
+      </header>
+
+      <nav className="flex gap-2 overflow-x-auto">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => setTab(p.id)}
+            className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 font-mono text-[10.5px] uppercase tracking-[0.16em] transition ${
+              tab === p.id
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-white/10 text-muted hover:border-white/25 hover:text-white"
+            }`}
+          >
+            <Icono nombre={p.icono} size={14} />
+            {p.label}
+          </button>
+        ))}
+      </nav>
+
+      {tab === "horario" && <PestanaHorario />}
+      {tab === "estudio" && <PestanaEstudio />}
+      {tab === "metodo" && <PestanaMetodo />}
+    </div>
+  );
+}
+
+function PestanaHorario() {
   const { state, guardarConfig } = useStore();
   const [config, setConfig] = useState<DayConfig[]>(state.config);
   const [guardado, setGuardado] = useState(false);
@@ -28,19 +77,7 @@ export default function ConfiguracionPage() {
   const diasActivos = config.filter((d) => d.activo).length;
 
   return (
-    <div className="space-y-8">
-      <header>
-        <span className="eyebrow">Motor del calendario</span>
-        <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
-          Configuración del <span className="gold-text">estudio</span>
-        </h1>
-        <p className="mt-2 max-w-2xl text-[13px] text-muted sm:text-sm">
-          Define qué días abre el estudio y el horario operativo de cada uno. Estas franjas
-          determinan los horarios disponibles al crear clases y los días que las alumnas ven como
-          cerrados.
-        </p>
-      </header>
-
+    <div className="space-y-5">
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {[
           { icono: "event_available", valor: String(diasActivos), etiqueta: "Días activos" },
@@ -65,11 +102,11 @@ export default function ConfiguracionPage() {
         ))}
       </section>
 
-      <section className="glass p-5 sm:p-8">
-        <h2 className="font-display text-2xl font-semibold uppercase tracking-wide">
+      <section className="glass p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
           Horario operativo
         </h2>
-        <div className="my-6 hairline" />
+        <div className="my-5 hairline" />
 
         <div className="space-y-3">
           {config.map((d) => {
@@ -168,7 +205,7 @@ export default function ConfiguracionPage() {
           </p>
         )}
 
-        <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+        <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row">
           <button
             type="button"
             disabled={invalidos.length > 0}
@@ -179,7 +216,7 @@ export default function ConfiguracionPage() {
             className="btn-gold w-full sm:w-auto"
           >
             <Icono nombre="save" />
-            GUARDAR CONFIGURACIÓN
+            GUARDAR HORARIO
           </button>
           <button
             type="button"
@@ -194,11 +231,302 @@ export default function ConfiguracionPage() {
           {guardado && (
             <span className="chip-gold">
               <Icono nombre="check_circle" size={14} />
-              Configuración guardada
+              Horario guardado
             </span>
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function PestanaEstudio() {
+  const { state, guardarEstudio } = useStore();
+  const [borrador, setBorrador] = useState<Estudio>(state.estudio);
+  const [enviando, setEnviando] = useState(false);
+  const [guardado, setGuardado] = useState(false);
+
+  useEffect(() => setBorrador(state.estudio), [state.estudio]);
+
+  const CAMPOS: Array<{ campo: keyof Estudio; label: string; placeholder: string }> = [
+    { campo: "nombre", label: "Nombre del estudio", placeholder: "UNIUM Wellness Training" },
+    { campo: "lema", label: "Lema", placeholder: "Unidos somos más fuertes" },
+    { campo: "direccion", label: "Dirección", placeholder: "Calle 93B #13-45, Chicó Norte" },
+    { campo: "ciudad", label: "Ciudad", placeholder: "Bogotá, Colombia" },
+    { campo: "telefono", label: "Teléfono", placeholder: "+57 320 448 9012" },
+    { campo: "email", label: "Correo de contacto", placeholder: "hola@unium.fit" },
+    { campo: "instagram", label: "Instagram", placeholder: "@unium.wellness" },
+  ];
+
+  return (
+    <section className="glass p-5 sm:p-7">
+      <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
+        Datos del estudio
+      </h2>
+      <p className="mt-2 max-w-xl text-[13px] text-muted">
+        Se muestran en la página de inicio, en el pie de las pantallas de acceso y en el detalle de
+        cada clase.
+      </p>
+      <div className="my-5 hairline" />
+
+      <form
+        className="grid gap-4 sm:grid-cols-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setEnviando(true);
+          await guardarEstudio(borrador);
+          setEnviando(false);
+          setGuardado(true);
+        }}
+      >
+        {CAMPOS.map(({ campo, label, placeholder }) => (
+          <div key={campo}>
+            <label htmlFor={`e-${campo}`}>{label}</label>
+            <input
+              id={`e-${campo}`}
+              placeholder={placeholder}
+              className="w-full"
+              value={borrador[campo]}
+              onChange={(e) => {
+                setBorrador({ ...borrador, [campo]: e.target.value });
+                setGuardado(false);
+              }}
+            />
+          </div>
+        ))}
+
+        <div className="sm:col-span-2">
+          <label htmlFor="e-mapa">URL del mapa (embed de OpenStreetMap o Google Maps)</label>
+          <input
+            id="e-mapa"
+            placeholder="https://www.openstreetmap.org/export/embed.html?..."
+            className="w-full"
+            value={borrador.mapa}
+            onChange={(e) => {
+              setBorrador({ ...borrador, mapa: e.target.value });
+              setGuardado(false);
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col items-center gap-4 sm:col-span-2 sm:flex-row">
+          <button type="submit" disabled={enviando} className="btn-gold w-full sm:w-auto">
+            <Icono nombre="save" size={16} />
+            {enviando ? "GUARDANDO…" : "GUARDAR DATOS"}
+          </button>
+          {guardado && !enviando && (
+            <span className="chip-gold">
+              <Icono nombre="check_circle" size={14} />
+              Datos guardados
+            </span>
+          )}
+        </div>
+      </form>
+    </section>
+  );
+}
+
+type BorradorPilar = Omit<Pilar, "id" | "orden">;
+
+function borradorPilarNuevo(): BorradorPilar {
+  return { icono: "fitness_center", titulo: "", texto: "" };
+}
+
+function PestanaMetodo() {
+  const { state, crearPilar, actualizarPilar, eliminarPilar } = useStore();
+  const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState<string | null>(null);
+  const [borrador, setBorrador] = useState<BorradorPilar>(borradorPilarNuevo());
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const pilares = [...state.pilares].sort((a, b) => a.orden - b.orden);
+
+  function nuevo() {
+    setBorrador(borradorPilarNuevo());
+    setEditando(null);
+    setError(null);
+    setAbierto(true);
+  }
+
+  function editar(p: Pilar) {
+    setBorrador({ icono: p.icono, titulo: p.titulo, texto: p.texto });
+    setEditando(p.id);
+    setError(null);
+    setAbierto(true);
+  }
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!borrador.titulo.trim()) {
+      setError("Ponle un título al pilar.");
+      return;
+    }
+    setEnviando(true);
+    if (editando) {
+      await actualizarPilar(editando, borrador);
+    } else {
+      await crearPilar({ ...borrador, orden: pilares.length });
+    }
+    setEnviando(false);
+    setAbierto(false);
+    setEditando(null);
+  }
+
+  async function mover(id: string, direccion: -1 | 1) {
+    const i = pilares.findIndex((p) => p.id === id);
+    const j = i + direccion;
+    if (i < 0 || j < 0 || j >= pilares.length) return;
+    await Promise.all([
+      actualizarPilar(pilares[i].id, { orden: pilares[j].orden }),
+      actualizarPilar(pilares[j].id, { orden: pilares[i].orden }),
+    ]);
+  }
+
+  return (
+    <div className="space-y-5">
+      <section className="glass p-5 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
+              El método
+            </h2>
+            <p className="mt-2 max-w-xl text-[13px] text-muted">
+              Las tarjetas que aparecen en "Cuatro pilares en cada sesión" de la página de inicio.
+              El orden aquí es el orden en que se muestran.
+            </p>
+          </div>
+          <button type="button" className="btn-gold shrink-0" onClick={nuevo}>
+            <Icono nombre="add" size={16} />
+            NUEVO PILAR
+          </button>
+        </div>
+
+        {abierto && (
+          <>
+            <div className="my-5 hairline" />
+            <form className="grid gap-4 sm:grid-cols-2" onSubmit={guardar}>
+              <div>
+                <label htmlFor="p-icono">Icono</label>
+                <select
+                  id="p-icono"
+                  className="w-full"
+                  value={borrador.icono}
+                  onChange={(e) => setBorrador({ ...borrador, icono: e.target.value })}
+                >
+                  {ICONOS_PILARES.map((i) => (
+                    <option key={i.valor} value={i.valor}>
+                      {i.etiqueta}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="p-titulo">Título</label>
+                <input
+                  id="p-titulo"
+                  required
+                  placeholder="Fuerza con técnica"
+                  className="w-full"
+                  value={borrador.titulo}
+                  onChange={(e) => setBorrador({ ...borrador, titulo: e.target.value })}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="p-texto">Texto</label>
+                <textarea
+                  id="p-texto"
+                  rows={2}
+                  placeholder="Un par de líneas sobre este pilar del método."
+                  className="w-full"
+                  value={borrador.texto}
+                  onChange={(e) => setBorrador({ ...borrador, texto: e.target.value })}
+                />
+              </div>
+
+              {error && (
+                <p className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300 sm:col-span-2">
+                  <Icono nombre="error" size={15} />
+                  {error}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:col-span-2">
+                <button type="submit" disabled={enviando} className="btn-gold">
+                  <Icono nombre="save" size={16} />
+                  {enviando ? "GUARDANDO…" : editando ? "GUARDAR CAMBIOS" : "CREAR PILAR"}
+                </button>
+                <button type="button" className="btn-ghost" onClick={() => setAbierto(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </section>
+
+      {pilares.length === 0 ? (
+        <div className="glass px-6 py-16 text-center">
+          <Icono nombre="fitness_center" size={34} className="mx-auto text-muted-dim" />
+          <p className="mt-4 text-sm text-muted">Todavía no has definido ningún pilar.</p>
+          <button type="button" className="btn-gold mt-6" onClick={nuevo}>
+            <Icono nombre="add" size={16} />
+            CREAR EL PRIMERO
+          </button>
+        </div>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {pilares.map((p, i) => (
+            <li key={p.id} className="glass flex flex-col p-5">
+              <div className="flex items-start justify-between gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+                  <Icono nombre={p.icono} size={18} />
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Mover arriba"
+                    disabled={i === 0}
+                    onClick={() => mover(p.id, -1)}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary disabled:opacity-30"
+                  >
+                    <Icono nombre="chevron_left" size={15} className="rotate-90" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Mover abajo"
+                    disabled={i === pilares.length - 1}
+                    onClick={() => mover(p.id, 1)}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary disabled:opacity-30"
+                  >
+                    <Icono nombre="chevron_right" size={15} className="rotate-90" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Editar ${p.titulo}`}
+                    onClick={() => editar(p)}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary"
+                  >
+                    <Icono nombre="edit" size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Eliminar ${p.titulo}`}
+                    onClick={() => eliminarPilar(p.id)}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
+                  >
+                    <Icono nombre="delete" size={15} />
+                  </button>
+                </div>
+              </div>
+              <h3 className="mt-4 font-display text-base font-semibold uppercase tracking-wide text-white">
+                {p.titulo}
+              </h3>
+              {p.texto && <p className="mt-2 text-[13px] leading-relaxed text-muted">{p.texto}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

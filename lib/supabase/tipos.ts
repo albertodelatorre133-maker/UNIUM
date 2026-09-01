@@ -81,6 +81,27 @@ export type CoachFila = {
   creada_en: string;
 };
 
+export type EstudioFila = {
+  id: number;
+  nombre: string;
+  lema: string;
+  direccion: string;
+  ciudad: string;
+  telefono: string;
+  email: string;
+  instagram: string;
+  mapa: string;
+};
+
+export type PilarFila = {
+  id: string;
+  icono: string;
+  titulo: string;
+  texto: string;
+  orden: number;
+  creada_en: string;
+};
+
 type Tabla<Fila, Insercion = Partial<Fila>, Actualizacion = Partial<Fila>> = {
   Row: Fila;
   Insert: Insercion;
@@ -99,6 +120,8 @@ export type Database = {
       promociones: Tabla<PromocionFila>;
       promociones_leidas: Tabla<PromocionLeidaFila>;
       coaches: Tabla<CoachFila>;
+      configuracion_estudio: Tabla<EstudioFila>;
+      pilares: Tabla<PilarFila>;
     };
     Views: Record<string, never>;
     Functions: {
