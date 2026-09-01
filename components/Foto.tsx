@@ -10,6 +10,7 @@ import { Isotipo } from "./Marca";
  */
 export function Foto({
   src,
+  respaldo,
   alt,
   className = "",
   imgClassName = "",
@@ -17,21 +18,33 @@ export function Foto({
   children,
 }: {
   src: string;
+  /** Imagen alternativa si `src` todavía no existe. */
+  respaldo?: string;
   alt: string;
   className?: string;
   imgClassName?: string;
   prioridad?: boolean;
   children?: React.ReactNode;
 }) {
+  const [actual, setActual] = useState(src);
   const [falla, setFalla] = useState(false);
   const img = useRef<HTMLImageElement>(null);
+
+  function alFallar() {
+    if (respaldo && actual !== respaldo) {
+      setActual(respaldo);
+      return;
+    }
+    setFalla(true);
+  }
 
   // El navegador puede fallar la descarga antes de que React hidrate y conecte
   // onError, así que al montar comprobamos también el estado real de la imagen.
   useEffect(() => {
     const el = img.current;
-    if (el && el.complete && el.naturalWidth === 0) setFalla(true);
-  }, []);
+    if (el && el.complete && el.naturalWidth === 0) alFallar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actual]);
 
   return (
     <div className={`relative overflow-hidden bg-ink-700 ${className}`}>
@@ -40,7 +53,7 @@ export function Foto({
           <div className="flex flex-col items-center gap-3 px-6 text-center">
             <Isotipo size={54} />
             <p className="max-w-[22ch] font-mono text-[9px] uppercase leading-relaxed tracking-[0.18em] text-muted-dim">
-              {src.replace("/fotos/", "")}
+              {actual.replace("/fotos/", "")}
             </p>
           </div>
         </div>
@@ -48,10 +61,11 @@ export function Foto({
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           ref={img}
-          src={src}
+          key={actual}
+          src={actual}
           alt={alt}
           loading={prioridad ? "eager" : "lazy"}
-          onError={() => setFalla(true)}
+          onError={alFallar}
           className={`h-full w-full object-cover ${imgClassName}`}
         />
       )}

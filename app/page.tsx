@@ -90,10 +90,10 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="relative overflow-hidden pb-20 pt-28 sm:pt-36">
         <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]" />
-        <div className="section relative grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="section relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
           <div className="animate-fade-up">
             <span className="eyebrow">Estudio de entrenamiento funcional · Mujeres</span>
-            <h1 className="mt-5 font-display text-[42px] font-bold uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="mt-4 lg:mt-5 font-display text-[42px] font-bold uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Entrena con
               <br />
               <span className="gold-text">método</span>, no con
@@ -127,12 +127,13 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-md animate-fade-up">
+          <div className="relative order-first mx-auto w-full max-w-md animate-fade-up lg:order-none">
             <div className="pointer-events-none absolute inset-6 animate-glow-pulse rounded-full bg-primary/15 blur-[80px]" />
             <Foto
               {...FOTOS.claseGrupal}
               prioridad
-              className="relative aspect-[4/5] rounded-3xl border border-primary/20 shadow-gold"
+              className="relative aspect-[16/11] rounded-3xl border border-primary/20 shadow-gold sm:aspect-[4/5]"
+              imgClassName="object-[58%_center]"
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6">
@@ -267,7 +268,11 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-4">
-            <Foto {...FOTOS.sala} className="aspect-video rounded-2xl border border-white/10" />
+            <Foto
+              {...FOTOS.sala}
+              respaldo={FOTOS.claseGrupal.src}
+              className="aspect-video rounded-2xl border border-white/10"
+            />
             <div className="glass overflow-hidden p-2">
               <iframe
                 title="Ubicación del estudio UNIUM"
