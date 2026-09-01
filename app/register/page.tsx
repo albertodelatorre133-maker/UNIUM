@@ -30,7 +30,7 @@ export default function RegisterPage() {
       }
     >
       <form
-        className="space-y-5"
+        className="space-y-4 corto:space-y-3 sm:space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
@@ -110,7 +110,7 @@ export default function RegisterPage() {
           CREAR CUENTA
         </button>
 
-        <p className="text-center text-[11px] leading-relaxed text-muted-dim">
+        <p className="text-center text-[10.5px] leading-relaxed text-muted-dim">
           Al registrarte aceptas el reglamento del estudio. UNIUM no gestiona pagos ni planes desde
           la plataforma.
         </p>

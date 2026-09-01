@@ -39,7 +39,7 @@ export default function LoginPage() {
       }
     >
       <form
-        className="space-y-5"
+        className="space-y-4 corto:space-y-3 sm:space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
@@ -96,25 +96,25 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-8 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-dim">
+      <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 corto:mt-3.5 corto:p-3 sm:mt-7 sm:p-4">
+        <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-dim">
           Acceso de demostración
         </p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-2.5 grid grid-cols-2 gap-2">
           <button
             type="button"
-            className="btn-ghost flex-1 !py-2 text-xs"
+            className="btn-ghost !py-2 text-xs"
             onClick={() => entrar(CUENTA_DEMO.email, CUENTA_DEMO.password)}
           >
-            <Icono nombre="person" size={16} />
+            <Icono nombre="person" size={15} />
             Alumna
           </button>
           <button
             type="button"
-            className="btn-ghost flex-1 !py-2 text-xs"
+            className="btn-ghost !py-2 text-xs"
             onClick={() => entrar(CUENTA_ADMIN.email, CUENTA_ADMIN.password)}
           >
-            <Icono nombre="shield_person" size={16} />
+            <Icono nombre="shield_person" size={15} />
             Staff
           </button>
         </div>

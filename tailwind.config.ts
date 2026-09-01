@@ -8,6 +8,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        // Pantallas de poca altura: móviles pequeños y teléfonos en horizontal.
+        corto: { raw: "(max-height: 700px)" },
+      },
       colors: {
         // Paleta UNIUM — Black & Gold
         primary: {
