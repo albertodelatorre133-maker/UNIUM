@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   const url = datos?.url as string | undefined;
   const usuarioId = datos?.usuarioId as string | undefined;
   const broadcast = Boolean(datos?.broadcast);
+  const tipo = datos?.tipo as "recordatorio" | "cupo" | "promocion" | undefined;
 
   if (!titulo || !cuerpo) {
     return NextResponse.json({ error: "Falta el título o el mensaje." }, { status: 400 });
@@ -36,9 +37,9 @@ export async function POST(request: Request) {
 
   try {
     if (broadcast) {
-      await enviarATodos({ titulo, cuerpo, url });
+      await enviarATodos({ titulo, cuerpo, url, tipo });
     } else if (usuarioId) {
-      await enviarAUsuario(usuarioId, { titulo, cuerpo, url });
+      await enviarAUsuario(usuarioId, { titulo, cuerpo, url, tipo });
     } else {
       return NextResponse.json({ error: "Falta el destinatario." }, { status: 400 });
     }

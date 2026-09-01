@@ -8,6 +8,8 @@ export interface NotificacionPush {
   titulo: string;
   cuerpo: string;
   url?: string;
+  /** Define el ícono, la vibración y el botón que usa el service worker al mostrarla. */
+  tipo?: "recordatorio" | "cupo" | "promocion";
 }
 
 function configurarVapid() {

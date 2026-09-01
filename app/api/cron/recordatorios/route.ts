@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       titulo: "Tu clase empieza pronto",
       cuerpo: `${r.clase_titulo} a las ${r.hora.slice(0, 5)}. ¡Te esperamos!`,
       url: "/alumnas",
+      tipo: "recordatorio",
     });
     await sb.from("reservas").update({ recordatorio_enviado: true }).eq("id", r.reserva_id);
   }

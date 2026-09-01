@@ -81,6 +81,7 @@ export async function notificarPush(payload: {
   titulo: string;
   cuerpo: string;
   url?: string;
+  tipo?: "recordatorio" | "cupo" | "promocion";
 }): Promise<void> {
   try {
     await fetch("/api/push/notificar", {

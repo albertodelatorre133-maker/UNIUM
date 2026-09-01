@@ -642,6 +642,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               titulo: "¡Tienes cupo!",
               cuerpo: `Se liberó un lugar en ${clase.titulo} y te lo asignamos.`,
               url: "/alumnas",
+              tipo: "cupo",
             });
           }
         }
@@ -718,6 +719,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             titulo: promo.titulo,
             cuerpo: promo.descripcion,
             url: "/alumnas/novedades",
+            tipo: "promocion",
           });
         }
         return;
