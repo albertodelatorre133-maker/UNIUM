@@ -37,7 +37,11 @@ export async function activarNotificaciones(): Promise<{ ok: boolean; error?: st
   }
 
   try {
-    const registro = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.register("/sw.js");
+    // La primera vez, el service worker recién registrado tarda un momento en
+    // quedar "activo"; suscribirse antes de eso falla con "no active Service
+    // Worker". navigator.serviceWorker.ready espera a que lo esté.
+    const registro = await navigator.serviceWorker.ready;
     const suscripcion = await registro.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(clave),
