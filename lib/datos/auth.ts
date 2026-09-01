@@ -39,7 +39,16 @@ export async function entrar(email: string, password: string): Promise<Resultado
     password,
   });
   if (error) {
-    return { ok: false, error: "Correo o contraseña incorrectos." };
+    if (error.message.includes("Email not confirmed")) {
+      return {
+        ok: false,
+        error: "Todavía no confirmas tu correo. Revisa tu bandeja de entrada (y spam).",
+      };
+    }
+    if (error.message.includes("Invalid login credentials")) {
+      return { ok: false, error: "Correo o contraseña incorrectos." };
+    }
+    return { ok: false, error: error.message };
   }
   return { ok: true };
 }
