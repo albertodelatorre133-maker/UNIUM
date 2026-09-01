@@ -193,8 +193,10 @@ export default function AdminCalendarioPage() {
                 step={5}
                 aria-label="Duración en minutos"
                 className="w-full !py-2 !pl-2 !pr-11 text-xs"
-                value={borrador.duracion}
-                onChange={(e) => setBorrador({ ...borrador, duracion: Number(e.target.value) })}
+                value={borrador.duracion || ""}
+                onChange={(e) =>
+                  setBorrador({ ...borrador, duracion: e.target.value === "" ? 0 : Number(e.target.value) })
+                }
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] uppercase text-muted-dim">
                 min
@@ -221,8 +223,10 @@ export default function AdminCalendarioPage() {
               max={40}
               aria-label="Cupos"
               className="w-full !px-3 !py-2 text-xs"
-              value={borrador.cupo}
-              onChange={(e) => setBorrador({ ...borrador, cupo: Number(e.target.value) })}
+              value={borrador.cupo || ""}
+              onChange={(e) =>
+                setBorrador({ ...borrador, cupo: e.target.value === "" ? 0 : Number(e.target.value) })
+              }
             />
             <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-dim">
               cupos
