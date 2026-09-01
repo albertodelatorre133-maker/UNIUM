@@ -9,7 +9,7 @@ export interface NotificacionPush {
   cuerpo: string;
   url?: string;
   /** Define el ícono, la vibración y el botón que usa el service worker al mostrarla. */
-  tipo?: "recordatorio" | "cupo" | "promocion" | "reserva";
+  tipo?: "recordatorio" | "cupo" | "promocion" | "reserva" | "cancelacion";
 }
 
 function configurarVapid() {

@@ -93,3 +93,16 @@ export function diasDesde(iso: string | null): number | null {
   const diff = fromISODate(hoyISO()).getTime() - fromISODate(iso).getTime();
   return Math.round(diff / 86400000);
 }
+
+/** Combina una fecha (YYYY-MM-DD) y una hora ("06:00") en un Date local. */
+export function fechaHora(fecha: string, hora: string): Date {
+  const d = fromISODate(fecha);
+  const [h, m] = hora.split(":").map(Number);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+/** Ya no se puede cancelar si la clase ya empezó o si falta menos de una hora. */
+export function puedeCancelarse(fecha: string, hora: string): boolean {
+  return fechaHora(fecha, hora).getTime() - Date.now() > 60 * 60 * 1000;
+}

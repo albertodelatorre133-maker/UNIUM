@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { CalendarioSemanal } from "@/components/CalendarioSemanal";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore, type SesionDelDia } from "@/lib/store";
 
 type Filtro = "todas" | "cupo" | "mias";
@@ -15,10 +16,13 @@ const FILTROS: Array<{ id: Filtro; label: string }> = [
 ];
 
 export default function ReservaClasesPage() {
-  const { reservar, cancelar, usuario, sesionesDeLaSemana, nombreCoach } = useStore();
+  const { reservar, cancelar, puedeCancelar, usuario, sesionesDeLaSemana, nombreCoach } =
+    useStore();
   const [offset, setOffset] = useState(0);
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [aviso, setAviso] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  const [porCancelar, setPorCancelar] = useState<{ id: string; titulo: string } | null>(null);
+  const [cancelando, setCancelando] = useState(false);
 
   const semana = sesionesDeLaSemana(offset);
   const misReservas = semana.flat().filter((s) => s.reservaPropia).length;
@@ -31,6 +35,18 @@ export default function ReservaClasesPage() {
         : { tipo: "error", texto: res.error ?? "No fue posible reservar." },
     );
     window.setTimeout(() => setAviso(null), 3200);
+  }
+
+  async function confirmarCancelacion() {
+    if (!porCancelar) return;
+    setCancelando(true);
+    const r = await cancelar(porCancelar.id);
+    setCancelando(false);
+    setPorCancelar(null);
+    if (!r.ok) {
+      setAviso({ tipo: "error", texto: r.error ?? "No fue posible cancelar la reserva." });
+      window.setTimeout(() => setAviso(null), 3200);
+    }
   }
 
   const filtrar = useCallback(
@@ -99,8 +115,14 @@ export default function ReservaClasesPage() {
                 <button
                   type="button"
                   aria-label={`Cancelar ${s.clase.titulo}`}
-                  onClick={() => cancelar(s.reservaPropia!.id)}
-                  className="grid h-[34px] w-[34px] place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
+                  disabled={!puedeCancelar(s.reservaPropia.id)}
+                  title={
+                    puedeCancelar(s.reservaPropia.id)
+                      ? undefined
+                      : "Falta menos de una hora para esta clase."
+                  }
+                  onClick={() => setPorCancelar({ id: s.reservaPropia!.id, titulo: s.clase.titulo })}
+                  className="grid h-[34px] w-[34px] place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-muted"
                 >
                   <Icono nombre="close" size={14} />
                 </button>
@@ -119,7 +141,7 @@ export default function ReservaClasesPage() {
         );
       },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cancelar, nombreCoach],
+    [puedeCancelar, nombreCoach],
   );
 
   return (
@@ -175,6 +197,17 @@ export default function ReservaClasesPage() {
         filtrar={filtrar}
         vacio={filtro === "mias" ? "Nada agendado" : "Sin clases"}
       />
+
+      {porCancelar && (
+        <ConfirmDialog
+          titulo="¿Cancelar esta reserva?"
+          mensaje={`Se liberará tu cupo en ${porCancelar.titulo} para que otra alumna pueda tomarlo.`}
+          confirmarTexto="Sí, cancelar"
+          cargando={cancelando}
+          onConfirmar={confirmarCancelacion}
+          onCancelar={() => setPorCancelar(null)}
+        />
+      )}
     </div>
   );
 }

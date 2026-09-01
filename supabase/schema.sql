@@ -351,6 +351,39 @@ create trigger reservas_registrar_cancelacion
   before delete on public.reservas
   for each row execute function public.registrar_cancelacion();
 
+-- Una alumna no puede cancelar su propia reserva si la clase ya empezó o si
+-- falta menos de una hora. El staff sí puede, para liberar cupos a último
+-- momento por su cuenta. El nombre del trigger empieza antes que
+-- "reservas_registrar_cancelacion" en orden alfabético para que la validación
+-- corra primero (aunque, si falla, la transacción entera se revierte igual).
+create or replace function public.validar_cancelacion()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  hora_clase time;
+begin
+  if public.es_admin() then
+    return old;
+  end if;
+
+  select c.hora into hora_clase from public.clases c where c.id = old.clase_id;
+
+  if hora_clase is not null and (old.fecha + hora_clase) < (now() + interval '60 minutes') then
+    raise exception 'Ya no se puede cancelar: falta menos de una hora para la clase.';
+  end if;
+
+  return old;
+end;
+$$;
+
+drop trigger if exists reservas_cancelacion_validar on public.reservas;
+create trigger reservas_cancelacion_validar
+  before delete on public.reservas
+  for each row execute function public.validar_cancelacion();
+
 -- Ocupación por clase y fecha. Las alumnas necesitan saber cuántos cupos
 -- quedan sin poder ver quién reservó, así que se expone solo el agregado.
 create or replace function public.ocupacion(desde date, hasta date)

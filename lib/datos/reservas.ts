@@ -48,9 +48,9 @@ export async function reservar(claseId: string, fecha: string): Promise<Resultad
   return error ? { ok: false, error: mensajeDeError(error) } : { ok: true };
 }
 
-export async function cancelar(reservaId: string): Promise<void> {
+export async function cancelar(reservaId: string): Promise<Resultado> {
   const { error } = await clienteNavegador().from("reservas").delete().eq("id", reservaId);
-  if (error) throw new Error(error.message);
+  return error ? { ok: false, error: mensajeDeError(error) } : { ok: true };
 }
 
 export async function historialDeUsuario(usuarioId: string): Promise<Booking[]> {

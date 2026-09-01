@@ -24,7 +24,7 @@ import type {
   Promocion,
   User,
 } from "./types";
-import { addDays, dayIndex, fromISODate, hoyISO, startOfWeek, toISODate } from "./date";
+import { addDays, dayIndex, fromISODate, hoyISO, puedeCancelarse, startOfWeek, toISODate } from "./date";
 import { clienteNavegador, hayBaseDeDatos } from "./supabase/cliente";
 import { aReserva, aUsuario } from "./datos/comun";
 import * as datosAuth from "./datos/auth";
@@ -38,7 +38,7 @@ import * as datosPilares from "./datos/pilares";
 import * as datosMetricas from "./datos/metricas";
 import * as datosCancelaciones from "./datos/cancelaciones";
 import * as datosEspera from "./datos/listaEspera";
-import { notificarPush, notificarNuevaReserva } from "./push";
+import { notificarPush, notificarNuevaReserva, notificarNuevaCancelacion } from "./push";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -89,7 +89,8 @@ interface StoreValue {
   actualizarClase: (id: string, cambios: Partial<Omit<ClassSession, "id">>) => Promise<void>;
   eliminarClase: (id: string) => Promise<void>;
   reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
-  cancelar: (bookingId: string) => Promise<void>;
+  cancelar: (bookingId: string) => Promise<{ ok: boolean; error?: string }>;
+  puedeCancelar: (bookingId: string) => boolean;
   unirseListaEspera: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
   salirListaEspera: (entryId: string) => Promise<void>;
   registrarDesdeEspera: (entryId: string) => Promise<{ ok: boolean; error?: string }>;
@@ -560,38 +561,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [remoto, recargar, state.sessionUserId, state.classes, state.bookings, cuposUsados],
   );
 
+  const puedeCancelar = useCallback(
+    (bookingId: string) => {
+      const booking = state.bookings.find((b) => b.id === bookingId);
+      const clase = booking ? state.classes.find((c) => c.id === booking.classId) : null;
+      if (!booking || !clase) return false;
+      const quien = state.users.find((u) => u.id === state.sessionUserId);
+      if (quien?.role === "admin") return true;
+      return puedeCancelarse(booking.fecha, clase.hora);
+    },
+    [state.bookings, state.classes, state.users, state.sessionUserId],
+  );
+
   const cancelar = useCallback(
     async (bookingId: string) => {
-      if (remoto) {
-        await datosReservas.cancelar(bookingId);
-        await recargar();
-        return;
+      const booking = state.bookings.find((b) => b.id === bookingId);
+      const clase = booking ? state.classes.find((c) => c.id === booking.classId) : null;
+      if (!puedeCancelar(bookingId)) {
+        return { ok: false, error: "Ya no se puede cancelar: falta menos de una hora para la clase." };
       }
+
+      if (remoto) {
+        const r = await datosReservas.cancelar(bookingId);
+        if (r.ok) {
+          await recargar();
+          if (clase && booking) notificarNuevaCancelacion(clase.id, booking.fecha);
+        }
+        return r;
+      }
+
       setState((s) => {
-        const booking = s.bookings.find((b) => b.id === bookingId);
-        if (!booking) return s;
-        const alumna = s.users.find((u) => u.id === booking.userId);
-        const clase = s.classes.find((c) => c.id === booking.classId);
+        const b = s.bookings.find((bk) => bk.id === bookingId);
+        if (!b) return s;
+        const alumna = s.users.find((u) => u.id === b.userId);
+        const c = s.classes.find((cl) => cl.id === b.classId);
         const quien = s.users.find((u) => u.id === s.sessionUserId);
         const registro: Cancelacion = {
           id: id("can"),
-          usuarioId: booking.userId,
+          usuarioId: b.userId,
           usuarioNombre: alumna?.nombre ?? "Alumna eliminada",
-          claseId: booking.classId,
-          claseTitulo: clase?.titulo ?? "Clase eliminada",
-          fechaClase: booking.fecha,
+          claseId: b.classId,
+          claseTitulo: c?.titulo ?? "Clase eliminada",
+          fechaClase: b.fecha,
           canceladaEn: new Date().toISOString(),
           canceladaPorId: s.sessionUserId,
           canceladaPorNombre: quien?.nombre ?? "Sistema",
         };
         return {
           ...s,
-          bookings: s.bookings.filter((b) => b.id !== bookingId),
+          bookings: s.bookings.filter((bk) => bk.id !== bookingId),
           cancelaciones: [registro, ...s.cancelaciones],
         };
       });
+      return { ok: true };
     },
-    [remoto, recargar],
+    [remoto, recargar, state.bookings, state.classes, puedeCancelar],
   );
 
   const unirseListaEspera = useCallback(
@@ -997,6 +1021,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     eliminarClase,
     reservar,
     cancelar,
+    puedeCancelar,
     unirseListaEspera,
     salirListaEspera,
     registrarDesdeEspera,

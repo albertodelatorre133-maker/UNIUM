@@ -24,6 +24,11 @@ const ESTILO_POR_TIPO = {
     requireInteraction: false,
     actions: [{ action: "ver", title: "Ver asistencia" }],
   },
+  cancelacion: {
+    vibrate: [120],
+    requireInteraction: false,
+    actions: [{ action: "ver", title: "Ver asistencia" }],
+  },
   general: {
     vibrate: [150],
     requireInteraction: false,

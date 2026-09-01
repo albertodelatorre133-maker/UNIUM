@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { Cargando } from "@/components/Guard";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore } from "@/lib/store";
 import { formatoLargo, hoyISO, sumarMinutos } from "@/lib/date";
 import { inicialesDe } from "@/lib/texto";
@@ -13,8 +14,11 @@ function DetalleClase() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const fecha = search.get("fecha") ?? hoyISO();
-  const { state, sesion, reservar, cancelar, unirseListaEspera, salirListaEspera } = useStore();
+  const { state, sesion, reservar, cancelar, puedeCancelar, unirseListaEspera, salirListaEspera } =
+    useStore();
   const [aviso, setAviso] = useState<string | null>(null);
+  const [confirmandoCancelar, setConfirmandoCancelar] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
 
   const s = sesion(params.id, fecha);
 
@@ -99,13 +103,25 @@ function DetalleClase() {
                     <Icono nombre="check_circle" size={16} />
                     YA ESTÁS AGENDADA
                   </span>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => cancelar(s.reservaPropia!.id)}
-                  >
-                    Cancelar reserva
-                  </button>
+                  {puedeCancelar(s.reservaPropia.id) ? (
+                    <button
+                      type="button"
+                      className="btn-danger"
+                      onClick={() => {
+                        setAviso(null);
+                        setConfirmandoCancelar(true);
+                      }}
+                    >
+                      Cancelar reserva
+                    </button>
+                  ) : (
+                    <span
+                      className="chip border-white/10 text-muted-dim !py-2.5"
+                      title="Falta menos de una hora para esta clase."
+                    >
+                      Ya no se puede cancelar
+                    </span>
+                  )}
                 </div>
               ) : lleno && s.miEspera ? (
                 <div className="flex flex-col gap-3 sm:flex-row">
@@ -213,7 +229,7 @@ function DetalleClase() {
               {[
                 "Llega 10 minutos antes para el calentamiento.",
                 "Trae toalla y botella de agua.",
-                "Cancela con 3 horas de anticipación para liberar tu cupo.",
+                "Cancela con al menos una hora de anticipación para liberar tu cupo.",
               ].map((t) => (
                 <li key={t} className="flex gap-3">
                   <Icono nombre="chevron_right" size={16} className="shrink-0 text-primary" />
@@ -224,6 +240,23 @@ function DetalleClase() {
           </section>
         </aside>
       </div>
+
+      {confirmandoCancelar && s.reservaPropia && (
+        <ConfirmDialog
+          titulo="¿Cancelar esta reserva?"
+          mensaje={`Se liberará tu cupo en ${s.clase.titulo} para que otra alumna pueda tomarlo.`}
+          confirmarTexto="Sí, cancelar"
+          cargando={cancelando}
+          onConfirmar={async () => {
+            setCancelando(true);
+            const r = await cancelar(s.reservaPropia!.id);
+            setCancelando(false);
+            setConfirmandoCancelar(false);
+            if (!r.ok) setAviso(r.error ?? "No fue posible cancelar la reserva.");
+          }}
+          onCancelar={() => setConfirmandoCancelar(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,15 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { NotificacionesPush } from "@/components/NotificacionesPush";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore } from "@/lib/store";
 import { formatoLargo, hoyISO, sumarMinutos } from "@/lib/date";
 import { hayBaseDeDatos } from "@/lib/supabase/cliente";
 
 export default function PerfilPage() {
-  const { usuario, reservasDeUsuario, cancelar, ultimaAsistencia, nombreCoach } = useStore();
+  const { usuario, reservasDeUsuario, cancelar, puedeCancelar, ultimaAsistencia, nombreCoach } =
+    useStore();
+  const [porCancelar, setPorCancelar] = useState<{ id: string; titulo: string } | null>(null);
+  const [cancelando, setCancelando] = useState(false);
+  const [errorCancelar, setErrorCancelar] = useState<string | null>(null);
+
+  async function confirmarCancelacion() {
+    if (!porCancelar) return;
+    setCancelando(true);
+    const r = await cancelar(porCancelar.id);
+    setCancelando(false);
+    if (r.ok) {
+      setPorCancelar(null);
+    } else {
+      setErrorCancelar(r.error ?? "No fue posible cancelar la reserva.");
+      setPorCancelar(null);
+    }
+  }
 
   const reservas = usuario ? reservasDeUsuario(usuario.id) : [];
   const hoy = hoyISO();
@@ -114,6 +132,13 @@ export default function PerfilPage() {
             </div>
             <div className="my-5 hairline" />
 
+            {errorCancelar && (
+              <p className="mb-5 flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
+                <Icono nombre="error" size={15} />
+                {errorCancelar}
+              </p>
+            )}
+
             {proximas.length === 0 ? (
               <div className="py-10 text-center">
                 <Icono nombre="event_busy" size={36} className="text-muted-dim" />
@@ -149,13 +174,25 @@ export default function PerfilPage() {
                       >
                         Detalle
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => cancelar(booking.id)}
-                        className="btn-danger !px-4 !py-2 text-xs"
-                      >
-                        Cancelar
-                      </button>
+                      {puedeCancelar(booking.id) ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setErrorCancelar(null);
+                            setPorCancelar({ id: booking.id, titulo: clase.titulo });
+                          }}
+                          className="btn-danger !px-4 !py-2 text-xs"
+                        >
+                          Cancelar
+                        </button>
+                      ) : (
+                        <span
+                          className="chip border-white/10 text-muted-dim"
+                          title="Falta menos de una hora para esta clase."
+                        >
+                          No cancelable
+                        </span>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -200,6 +237,17 @@ export default function PerfilPage() {
           </section>
         </div>
       </div>
+
+      {porCancelar && (
+        <ConfirmDialog
+          titulo="¿Cancelar esta reserva?"
+          mensaje={`Se liberará tu cupo en ${porCancelar.titulo} para que otra alumna pueda tomarlo.`}
+          confirmarTexto="Sí, cancelar"
+          cargando={cancelando}
+          onConfirmar={confirmarCancelacion}
+          onCancelar={() => setPorCancelar(null)}
+        />
+      )}
     </div>
   );
 }
