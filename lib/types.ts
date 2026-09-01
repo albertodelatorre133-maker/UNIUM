@@ -27,7 +27,7 @@ export interface ClassSession {
   day: number; // 0 = Lunes ... 6 = Domingo
   hora: string; // "07:00"
   duracion: number; // minutos
-  coach: string;
+  coachId: string;
   cupo: number;
   semanal: boolean; // se repite cada semana
   fecha: string | null; // YYYY-MM-DD cuando NO es semanal

@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { formatoLargo, hoyISO, sumarMinutos } from "@/lib/date";
 
 export default function PerfilPage() {
-  const { usuario, reservasDeUsuario, cancelar, ultimaAsistencia } = useStore();
+  const { usuario, reservasDeUsuario, cancelar, ultimaAsistencia, nombreCoach } = useStore();
 
   const reservas = usuario ? reservasDeUsuario(usuario.id) : [];
   const hoy = hoyISO();
@@ -132,7 +132,7 @@ export default function PerfilPage() {
                           {clase.titulo}
                         </p>
                         <p className="mt-0.5 text-xs text-muted">
-                          {formatoLargo(booking.fecha)} · {clase.coach}
+                          {formatoLargo(booking.fecha)} · {nombreCoach(clase.coachId)}
                         </p>
                       </div>
                     </div>

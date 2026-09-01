@@ -1,7 +1,7 @@
 "use client";
 
 import { clienteNavegador } from "@/lib/supabase/cliente";
-import { aCoach } from "./comun";
+import { aCoach, mensajeDeError } from "./comun";
 import type { Coach } from "@/lib/types";
 
 /**
@@ -36,10 +36,6 @@ export async function crearCoach(
   return aCoach(data);
 }
 
-/**
- * Si `cambios.nombre` cambia, un disparador en la base propaga el nuevo
- * nombre a todas las clases —pasadas y futuras— que tenían el anterior.
- */
 export async function actualizarCoach(id: string, cambios: Partial<Coach>): Promise<void> {
   const { error } = await clienteNavegador()
     .from("coaches")
@@ -54,7 +50,9 @@ export async function actualizarCoach(id: string, cambios: Partial<Coach>): Prom
   if (error) throw new Error(error.message);
 }
 
-export async function eliminarCoach(id: string): Promise<void> {
+/** `clases.coach_id` referencia a esta tabla: no se puede borrar una coach con clases asignadas. */
+export async function eliminarCoach(id: string): Promise<{ ok: boolean; error?: string }> {
   const { error } = await clienteNavegador().from("coaches").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, error: mensajeDeError(error) };
+  return { ok: true };
 }

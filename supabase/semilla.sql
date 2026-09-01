@@ -24,9 +24,12 @@ select * from (values
 ) as nuevas (nombre, especialidad, bio)
 where not exists (select 1 from public.coaches c where c.nombre = nuevas.nombre);
 
--- Clases semanales
-insert into public.clases (titulo, descripcion, day, hora, duracion, coach, cupo, semanal)
-select * from (values
+-- Clases semanales. coach_id se resuelve por nombre contra la coach recién
+-- creada arriba (no hay UUIDs fijos que insertar a mano).
+insert into public.clases (titulo, descripcion, day, hora, duracion, coach_id, cupo, semanal)
+select nuevas.titulo, nuevas.descripcion, nuevas.day, nuevas.hora, nuevas.duracion,
+       (select id from public.coaches where nombre = nuevas.coach), nuevas.cupo, nuevas.semanal
+from (values
   ('Fuerza Total',      'Bloque de fuerza con barra y mancuernas. Patrones de empuje, tracción y bisagra de cadera con progresión semanal.', 0, '06:00'::time, 60, 'Cecilia De La Torre', 12, true),
   ('Core & Movilidad',  'Trabajo de control profundo, respiración y rangos articulares. Ideal como sesión de recuperación activa.',            0, '18:30'::time, 50, 'Cecilia De La Torre',  10, true),
   ('HIIT Premium',      'Intervalos de alta intensidad con control de ritmo cardiaco. Potencia, resistencia y recuperación medida.',          1, '07:00'::time, 45, 'Cecilia De La Torre', 14, true),

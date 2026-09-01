@@ -30,7 +30,7 @@ export function aClase(fila: ClaseFila): ClassSession {
     day: fila.day,
     hora: hhmm(fila.hora),
     duracion: fila.duracion,
-    coach: fila.coach,
+    coachId: fila.coach_id,
     cupo: fila.cupo,
     semanal: fila.semanal,
     fecha: fila.fecha,
@@ -92,5 +92,7 @@ export function mensajeDeError(error: { message: string; code?: string } | null)
   if (error.message.includes("No quedan cupos")) return "No quedan cupos disponibles.";
   if (error.message.includes("no abre ese día")) return "El estudio no abre ese día.";
   if (error.code === "23505") return "Ya tienes un cupo en esta clase.";
+  if (error.code === "23503")
+    return "No puedes eliminar esta coach: todavía tiene clases asignadas. Reasígnalas o elimínalas primero.";
   return error.message;
 }

@@ -37,7 +37,7 @@ export type ClaseFila = {
   day: number;
   hora: string;
   duracion: number;
-  coach: string;
+  coach_id: string;
   cupo: number;
   semanal: boolean;
   fecha: string | null;

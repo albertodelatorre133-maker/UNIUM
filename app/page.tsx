@@ -5,7 +5,7 @@ import { Foto } from "@/components/Foto";
 import { LogoCompleto } from "@/components/Marca";
 import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
-import { CLASES, ESTUDIO, FOTOS } from "@/lib/seed";
+import { CLASES, COACHES, ESTUDIO, FOTOS } from "@/lib/seed";
 import { DIAS, sumarMinutos } from "@/lib/date";
 
 const METRICAS = [
@@ -68,7 +68,9 @@ function PreviewHorario() {
                 <li key={c.id} className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">{c.titulo}</p>
-                    <p className="mt-0.5 text-xs text-muted-dim">{c.coach}</p>
+                    <p className="mt-0.5 text-xs text-muted-dim">
+                      {COACHES.find((co) => co.id === c.coachId)?.nombre ?? "Coach"}
+                    </p>
                   </div>
                   <span className="whitespace-nowrap font-mono text-[11px] tracking-wider text-primary">
                     {c.hora}–{sumarMinutos(c.hora, c.duracion)}

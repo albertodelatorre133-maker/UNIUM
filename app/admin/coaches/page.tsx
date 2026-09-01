@@ -20,6 +20,7 @@ export default function CoachesPage() {
   const [borrador, setBorrador] = useState<Borrador>(borradorNuevo());
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
 
   const coaches = state.coaches;
   const activas = coaches.filter((c) => c.activa).length;
@@ -69,7 +70,8 @@ export default function CoachesPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-[13px] text-muted sm:text-sm">
             Lo que publiques aquí aparece en la página de inicio y en el desplegable al crear una
-            clase nueva. Si renombras a una coach, sus clases ya creadas se actualizan solas.
+            clase nueva. Si renombras a una coach, sus clases ya creadas muestran el nuevo nombre
+            automáticamente.
           </p>
         </div>
         <button type="button" className="btn-gold shrink-0" onClick={nueva}>
@@ -208,6 +210,13 @@ export default function CoachesPage() {
         </section>
       )}
 
+      {errorBorrado && (
+        <p className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
+          <Icono nombre="error" size={15} />
+          {errorBorrado}
+        </p>
+      )}
+
       {coaches.length === 0 ? (
         <div className="glass px-6 py-16 text-center">
           <Icono nombre="groups" size={34} className="mx-auto text-muted-dim" />
@@ -251,7 +260,11 @@ export default function CoachesPage() {
                   <button
                     type="button"
                     aria-label={`Eliminar ${c.nombre}`}
-                    onClick={() => eliminarCoach(c.id)}
+                    onClick={async () => {
+                      setErrorBorrado(null);
+                      const r = await eliminarCoach(c.id);
+                      if (!r.ok) setErrorBorrado(r.error ?? "No fue posible eliminar la coach.");
+                    }}
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
                   >
                     <Icono nombre="delete" size={15} />

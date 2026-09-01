@@ -9,7 +9,7 @@ import { addDays, formatoLargo, hoyISO, MESES, startOfWeek, sumarMinutos } from 
 
 function ControlAsistencia() {
   const search = useSearchParams();
-  const { sesionesDeLaSemana, sesion, reservasDeSesion, marcarAsistencia } = useStore();
+  const { sesionesDeLaSemana, sesion, reservasDeSesion, marcarAsistencia, nombreCoach } = useStore();
 
   const semana = sesionesDeLaSemana(0);
   const sesiones = useMemo(() => semana.flat(), [semana]);
@@ -89,7 +89,7 @@ function ControlAsistencia() {
               </h2>
               <p className="mt-1 flex items-center gap-2 text-sm text-muted">
                 <Icono nombre="person" size={16} />
-                {actual.clase.coach}
+                {nombreCoach(actual.clase.coachId)}
               </p>
             </div>
 

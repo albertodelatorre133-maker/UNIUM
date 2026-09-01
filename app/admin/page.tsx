@@ -14,12 +14,12 @@ interface Borrador {
   descripcion: string;
   hora: string;
   duracion: number;
-  coach: string;
+  coachId: string;
   cupo: number;
   semanal: boolean;
 }
 
-const BORRADOR_BASE: Omit<Borrador, "hora" | "coach"> = {
+const BORRADOR_BASE: Omit<Borrador, "hora" | "coachId"> = {
   titulo: "",
   descripcion: "",
   duracion: 60,
@@ -28,14 +28,14 @@ const BORRADOR_BASE: Omit<Borrador, "hora" | "coach"> = {
 };
 
 export default function AdminCalendarioPage() {
-  const { state, sesionesDeLaSemana, crearClase, eliminarClase } = useStore();
+  const { state, sesionesDeLaSemana, crearClase, eliminarClase, nombreCoach } = useStore();
   const coachesActivas = state.coaches.filter((c) => c.activa);
   const [offset, setOffset] = useState(0);
   const [diaEnEdicion, setDiaEnEdicion] = useState<number | null>(null);
   const [borrador, setBorrador] = useState<Borrador>({
     ...BORRADOR_BASE,
     hora: "07:00",
-    coach: coachesActivas[0]?.nombre ?? "",
+    coachId: coachesActivas[0]?.id ?? "",
   });
 
   const semana = sesionesDeLaSemana(offset);
@@ -53,7 +53,7 @@ export default function AdminCalendarioPage() {
     setBorrador({
       ...BORRADOR_BASE,
       hora: franjasHorarias(config.apertura, config.cierre)[0] ?? "07:00",
-      coach: coachesActivas[0]?.nombre ?? "",
+      coachId: coachesActivas[0]?.id ?? "",
     });
   }
 
@@ -65,7 +65,7 @@ export default function AdminCalendarioPage() {
       day,
       hora: borrador.hora,
       duracion: borrador.duracion,
-      coach: borrador.coach,
+      coachId: borrador.coachId,
       cupo: borrador.cupo,
       semanal: borrador.semanal,
       fecha: borrador.semanal ? null : toISODate(addDays(lunes, day)),
@@ -106,7 +106,7 @@ export default function AdminCalendarioPage() {
           </h4>
           <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted">
             <Icono nombre="person" size={12} />
-            {s.clase.coach}
+            {nombreCoach(s.clase.coachId)}
           </p>
 
           <div className="mt-2.5 flex items-center justify-between gap-2">
@@ -130,7 +130,7 @@ export default function AdminCalendarioPage() {
         </article>
       );
     },
-    [eliminarClase],
+    [eliminarClase, nombreCoach],
   );
 
   const pieDia = useCallback(
@@ -197,12 +197,12 @@ export default function AdminCalendarioPage() {
           <select
             className="w-full !px-2 !py-2 text-xs"
             aria-label="Coach"
-            value={borrador.coach}
-            onChange={(e) => setBorrador({ ...borrador, coach: e.target.value })}
+            value={borrador.coachId}
+            onChange={(e) => setBorrador({ ...borrador, coachId: e.target.value })}
           >
             {coachesActivas.length === 0 && <option value="">Sin coaches activas</option>}
             {coachesActivas.map((c) => (
-              <option key={c.id} value={c.nombre}>
+              <option key={c.id} value={c.id}>
                 {c.nombre}
               </option>
             ))}

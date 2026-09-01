@@ -15,7 +15,7 @@ const FILTROS: Array<{ id: Filtro; label: string }> = [
 ];
 
 export default function ReservaClasesPage() {
-  const { reservar, cancelar, usuario, sesionesDeLaSemana } = useStore();
+  const { reservar, cancelar, usuario, sesionesDeLaSemana, nombreCoach } = useStore();
   const [offset, setOffset] = useState(0);
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [aviso, setAviso] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
@@ -82,7 +82,7 @@ export default function ReservaClasesPage() {
               </h4>
               <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted">
                 <Icono nombre="person" size={12} />
-                {s.clase.coach}
+                {nombreCoach(s.clase.coachId)}
               </p>
             </Link>
 
@@ -119,7 +119,7 @@ export default function ReservaClasesPage() {
         );
       },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cancelar],
+    [cancelar, nombreCoach],
   );
 
   return (

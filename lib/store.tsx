@@ -66,7 +66,8 @@ interface StoreValue {
   eliminarPromocion: (id: string) => Promise<void>;
   crearCoach: (coach: Omit<Coach, "id" | "creadaEn">) => Promise<void>;
   actualizarCoach: (id: string, cambios: Partial<Coach>) => Promise<void>;
-  eliminarCoach: (id: string) => Promise<void>;
+  eliminarCoach: (id: string) => Promise<{ ok: boolean; error?: string }>;
+  nombreCoach: (coachId: string) => string;
   promocionesVigentes: () => Promocion[];
   promocionesDeInicio: () => Promocion[];
   notificaciones: () => NotificacionPromo[];
@@ -469,22 +470,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         await recargar();
         return;
       }
-      setState((s) => {
-        const anterior = s.coaches.find((c) => c.id === coachId);
-        const renombrada = anterior && cambios.nombre && cambios.nombre !== anterior.nombre;
-        return {
-          ...s,
-          coaches: s.coaches.map((c) => (c.id === coachId ? { ...c, ...cambios } : c)),
-          // clases.coach guarda el nombre como texto libre: al renombrar aquí
-          // se actualiza también en las clases ya creadas, igual que hace el
-          // disparador propagar_nombre_coach() del lado de la base.
-          classes: renombrada
-            ? s.classes.map((cl) =>
-                cl.coach === anterior!.nombre ? { ...cl, coach: cambios.nombre! } : cl,
-              )
-            : s.classes,
-        };
-      });
+      setState((s) => ({
+        ...s,
+        coaches: s.coaches.map((c) => (c.id === coachId ? { ...c, ...cambios } : c)),
+      }));
     },
     [remoto, recargar],
   );
@@ -492,13 +481,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const eliminarCoach = useCallback(
     async (coachId: string) => {
       if (remoto) {
-        await datosCoaches.eliminarCoach(coachId);
-        await recargar();
-        return;
+        const r = await datosCoaches.eliminarCoach(coachId);
+        if (r.ok) await recargar();
+        return r;
+      }
+      if (state.classes.some((cl) => cl.coachId === coachId)) {
+        return {
+          ok: false,
+          error: "No puedes eliminar esta coach: todavía tiene clases asignadas. Reasígnalas o elimínalas primero.",
+        };
       }
       setState((s) => ({ ...s, coaches: s.coaches.filter((c) => c.id !== coachId) }));
+      return { ok: true };
     },
-    [remoto, recargar],
+    [remoto, recargar, state.classes],
+  );
+
+  const nombreCoach = useCallback(
+    (coachId: string) => state.coaches.find((c) => c.id === coachId)?.nombre ?? "Coach",
+    [state.coaches],
   );
 
   /** Activa y dentro de su ventana de fechas. */
@@ -651,6 +652,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     crearCoach,
     actualizarCoach,
     eliminarCoach,
+    nombreCoach,
     promocionesVigentes,
     promocionesDeInicio,
     notificaciones,

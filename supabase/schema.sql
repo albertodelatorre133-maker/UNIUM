@@ -39,10 +39,8 @@ create table if not exists public.configuracion_dias (
   constraint rango_horario_valido check (apertura < cierre)
 );
 
--- Coaches del estudio. clases.coach guarda el nombre como texto libre (no una
--- referencia): ver la función propagar_nombre_coach() más abajo, que es la
--- que mantiene sincronizadas las clases ya creadas cuando alguien cambia su
--- nombre aquí.
+-- Coaches del estudio. clases.coach_id referencia esta tabla, así que
+-- renombrar una coach aquí se refleja de inmediato en sus clases.
 create table if not exists public.coaches (
   id            uuid primary key default gen_random_uuid(),
   nombre        text not null,
@@ -61,7 +59,7 @@ create table if not exists public.clases (
   day          smallint not null check (day between 0 and 6),
   hora         time not null,
   duracion     smallint not null default 60 check (duracion between 15 and 240),
-  coach        text not null,
+  coach_id     uuid not null references public.coaches(id),
   cupo         smallint not null default 12 check (cupo between 1 and 60),
   semanal      boolean not null default true,
   fecha        date,
@@ -106,6 +104,7 @@ create table if not exists public.promociones_leidas (
 
 -- --------------------------------------------------------------- índices ----
 create index if not exists coaches_activa_idx       on public.coaches (activa);
+create index if not exists clases_coach_idx         on public.clases (coach_id);
 create index if not exists clases_dia_hora_idx      on public.clases (day, hora);
 create index if not exists reservas_fecha_idx       on public.reservas (fecha);
 create index if not exists reservas_clase_fecha_idx on public.reservas (clase_id, fecha);
@@ -231,28 +230,6 @@ drop trigger if exists reservas_validar on public.reservas;
 create trigger reservas_validar
   before insert on public.reservas
   for each row execute function public.validar_reserva();
-
--- clases.coach guarda el nombre como texto libre, así que renombrar una coach
--- aquí no cambiaría por sí solo las clases ya creadas con su nombre anterior.
--- Este disparador propaga el cambio para que sí lo haga.
-create or replace function public.propagar_nombre_coach()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if new.nombre is distinct from old.nombre then
-    update public.clases set coach = new.nombre where coach = old.nombre;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists coaches_propagar_nombre on public.coaches;
-create trigger coaches_propagar_nombre
-  after update on public.coaches
-  for each row execute function public.propagar_nombre_coach();
 
 -- Ocupación por clase y fecha. Las alumnas necesitan saber cuántos cupos
 -- quedan sin poder ver quién reservó, así que se expone solo el agregado.

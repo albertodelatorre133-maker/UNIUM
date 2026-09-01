@@ -24,7 +24,7 @@ export async function crearClase(clase: Omit<ClassSession, "id">): Promise<Class
       day: clase.day,
       hora: clase.hora,
       duracion: clase.duracion,
-      coach: clase.coach,
+      coach_id: clase.coachId,
       cupo: clase.cupo,
       semanal: clase.semanal,
       fecha: clase.fecha,

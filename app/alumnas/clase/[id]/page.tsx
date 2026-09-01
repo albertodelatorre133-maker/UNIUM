@@ -32,7 +32,7 @@ function DetalleClase() {
     );
   }
 
-  const coach = state.coaches.find((c) => c.nombre === s.clase.coach);
+  const coach = state.coaches.find((c) => c.id === s.clase.coachId);
   const lleno = s.disponibles === 0 && !s.reservaPropia;
 
   return (
@@ -129,11 +129,11 @@ function DetalleClase() {
             <span className="eyebrow">Tu coach</span>
             <div className="mt-5 flex items-start gap-5">
               <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-primary/30 bg-gold-gradient font-display text-xl font-bold text-ink-900">
-                {inicialesDe(coach?.nombre ?? s.clase.coach)}
+                {inicialesDe(coach?.nombre ?? "")}
               </span>
               <div>
                 <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
-                  {s.clase.coach}
+                  {coach?.nombre ?? "Coach"}
                 </h2>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
                   {coach?.especialidad ?? "Coach UNIUM"}
