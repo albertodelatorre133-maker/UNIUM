@@ -101,13 +101,18 @@ export default function AdminCalendarioPage() {
             </div>
           </div>
 
-          <h4 className="mt-2 font-display text-[15px] font-semibold uppercase leading-tight tracking-wide text-white">
-            {s.clase.titulo}
-          </h4>
-          <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted">
-            <Icono nombre="person" size={12} />
-            {nombreCoach(s.clase.coachId)}
-          </p>
+          <Link
+            href={`/admin/asistencia?clase=${s.clase.id}&fecha=${s.fecha}`}
+            className="mt-2 block outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            <h4 className="font-display text-[15px] font-semibold uppercase leading-tight tracking-wide text-white">
+              {s.clase.titulo}
+            </h4>
+            <p className="mt-1 flex items-center gap-1.5 text-[11.5px] text-muted">
+              <Icono nombre="person" size={12} />
+              {nombreCoach(s.clase.coachId)}
+            </p>
+          </Link>
 
           <div className="mt-2.5 flex items-center justify-between gap-2">
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-dim">
@@ -121,9 +126,10 @@ export default function AdminCalendarioPage() {
               )}
               <Link
                 href={`/admin/asistencia?clase=${s.clase.id}&fecha=${s.fecha}`}
-                className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted transition hover:text-primary"
+                className="flex items-center gap-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted transition hover:text-primary"
               >
-                Asistencia
+                Ver asistencia
+                <Icono nombre="chevron_right" size={11} />
               </Link>
             </div>
           </div>
