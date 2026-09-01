@@ -69,14 +69,14 @@ export const MESES = [
   "diciembre",
 ] as const;
 
-/** Genera las horas seleccionables (cada 30 min) dentro de un rango operativo. */
+/** Genera las horas seleccionables (cada 15 min) dentro de un rango operativo. */
 export function franjasHorarias(apertura: string, cierre: string): string[] {
   const [ha, ma] = apertura.split(":").map(Number);
   const [hc, mc] = cierre.split(":").map(Number);
   const inicio = ha * 60 + ma;
   const fin = hc * 60 + mc;
   const out: string[] = [];
-  for (let t = inicio; t <= fin - 30; t += 30) {
+  for (let t = inicio; t <= fin - 15; t += 15) {
     out.push(`${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
   }
   return out;

@@ -7,8 +7,6 @@ import { CalendarioSemanal } from "@/components/CalendarioSemanal";
 import { useStore, type SesionDelDia } from "@/lib/store";
 import { addDays, franjasHorarias, startOfWeek, sumarMinutos, toISODate } from "@/lib/date";
 
-const DURACIONES = [30, 45, 50, 60, 75, 90];
-
 interface Borrador {
   titulo: string;
   descripcion: string;
@@ -187,18 +185,21 @@ export default function AdminCalendarioPage() {
                 </option>
               ))}
             </select>
-            <select
-              className="w-full !px-2 !py-2 text-xs"
-              aria-label="Duración"
-              value={borrador.duracion}
-              onChange={(e) => setBorrador({ ...borrador, duracion: Number(e.target.value) })}
-            >
-              {DURACIONES.map((m) => (
-                <option key={m} value={m}>
-                  {m} min
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="number"
+                min={15}
+                max={240}
+                step={5}
+                aria-label="Duración en minutos"
+                className="w-full !py-2 !pl-2 !pr-11 text-xs"
+                value={borrador.duracion}
+                onChange={(e) => setBorrador({ ...borrador, duracion: Number(e.target.value) })}
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] uppercase text-muted-dim">
+                min
+              </span>
+            </div>
           </div>
           <select
             className="w-full !px-2 !py-2 text-xs"
