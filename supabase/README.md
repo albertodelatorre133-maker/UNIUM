@@ -23,10 +23,17 @@ las funciones y las políticas de seguridad.
 Después repite la operación con [`semilla.sql`](./semilla.sql), que deja el
 horario del estudio, las diez clases de la semana y tres promociones de ejemplo.
 
-> Si ejecutaste `schema.sql` antes del 1 de septiembre de 2026, tu tabla
-> `perfiles` no tiene la columna `email`. Ejecuta también
-> [`migraciones/0001_email_en_perfiles.sql`](./migraciones/0001_email_en_perfiles.sql)
-> — es idempotente y segura de correr aunque ya tengas cuentas registradas.
+> Si ejecutaste `schema.sql` antes del 1 de septiembre de 2026, ejecuta también
+> estas dos migraciones, en orden:
+>
+> 1. [`migraciones/0001_email_en_perfiles.sql`](./migraciones/0001_email_en_perfiles.sql)
+>    — tu tabla `perfiles` no tiene la columna `email`.
+> 2. [`migraciones/0002_permitir_bootstrap_admin.sql`](./migraciones/0002_permitir_bootstrap_admin.sql)
+>    — sin ella, el paso 4 de más abajo (convertir tu cuenta en staff) falla con
+>    `Solo el staff puede cambiar el rol o el estado de una alumna`.
+>
+> Las dos son idempotentes y seguras de correr aunque ya tengas cuentas
+> registradas.
 
 ### 3. Conectar la aplicación
 

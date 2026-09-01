@@ -148,6 +148,18 @@ security definer
 set search_path = public
 as $$
 begin
+  -- auth.uid() solo existe cuando la petición llega con una sesión de
+  -- Supabase Auth (la aplicación, autenticada). El SQL Editor, las
+  -- migraciones y cualquier acceso directo a la base no llevan esa sesión,
+  -- así que auth.uid() da null ahí: es el camino para nombrar al primer
+  -- staff, y quien tiene acceso directo a la base ya podía saltarse esta
+  -- regla de todos modos (podría borrar el disparador). Esto no debilita la
+  -- protección real, que es impedir que una alumna se ascienda a sí misma
+  -- desde la aplicación.
+  if auth.uid() is null then
+    return new;
+  end if;
+
   if not public.es_admin()
      and (new.rol is distinct from old.rol or new.activa is distinct from old.activa) then
     raise exception 'Solo el staff puede cambiar el rol o el estado de una alumna';
