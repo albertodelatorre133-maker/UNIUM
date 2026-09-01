@@ -5,7 +5,6 @@ import { useCallback, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { CalendarioSemanal } from "@/components/CalendarioSemanal";
 import { useStore, type SesionDelDia } from "@/lib/store";
-import { COACHES } from "@/lib/seed";
 import { addDays, franjasHorarias, startOfWeek, sumarMinutos, toISODate } from "@/lib/date";
 
 const DURACIONES = [30, 45, 50, 60, 75, 90];
@@ -20,20 +19,24 @@ interface Borrador {
   semanal: boolean;
 }
 
-const BORRADOR_BASE: Omit<Borrador, "hora"> = {
+const BORRADOR_BASE: Omit<Borrador, "hora" | "coach"> = {
   titulo: "",
   descripcion: "",
   duracion: 60,
-  coach: COACHES[0].nombre,
   cupo: 12,
   semanal: true,
 };
 
 export default function AdminCalendarioPage() {
   const { state, sesionesDeLaSemana, crearClase, eliminarClase } = useStore();
+  const coachesActivas = state.coaches.filter((c) => c.activa);
   const [offset, setOffset] = useState(0);
   const [diaEnEdicion, setDiaEnEdicion] = useState<number | null>(null);
-  const [borrador, setBorrador] = useState<Borrador>({ ...BORRADOR_BASE, hora: "07:00" });
+  const [borrador, setBorrador] = useState<Borrador>({
+    ...BORRADOR_BASE,
+    hora: "07:00",
+    coach: coachesActivas[0]?.nombre ?? "",
+  });
 
   const semana = sesionesDeLaSemana(offset);
   const lunes = addDays(startOfWeek(new Date()), offset * 7);
@@ -50,6 +53,7 @@ export default function AdminCalendarioPage() {
     setBorrador({
       ...BORRADOR_BASE,
       hora: franjasHorarias(config.apertura, config.cierre)[0] ?? "07:00",
+      coach: coachesActivas[0]?.nombre ?? "",
     });
   }
 
@@ -196,8 +200,9 @@ export default function AdminCalendarioPage() {
             value={borrador.coach}
             onChange={(e) => setBorrador({ ...borrador, coach: e.target.value })}
           >
-            {COACHES.map((c) => (
-              <option key={c.nombre} value={c.nombre}>
+            {coachesActivas.length === 0 && <option value="">Sin coaches activas</option>}
+            {coachesActivas.map((c) => (
+              <option key={c.id} value={c.nombre}>
                 {c.nombre}
               </option>
             ))}

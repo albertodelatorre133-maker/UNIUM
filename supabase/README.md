@@ -24,15 +24,17 @@ Después repite la operación con [`semilla.sql`](./semilla.sql), que deja el
 horario del estudio, las diez clases de la semana y tres promociones de ejemplo.
 
 > Si ejecutaste `schema.sql` antes del 1 de septiembre de 2026, ejecuta también
-> estas dos migraciones, en orden:
+> estas migraciones, en orden:
 >
 > 1. [`migraciones/0001_email_en_perfiles.sql`](./migraciones/0001_email_en_perfiles.sql)
 >    — tu tabla `perfiles` no tiene la columna `email`.
 > 2. [`migraciones/0002_permitir_bootstrap_admin.sql`](./migraciones/0002_permitir_bootstrap_admin.sql)
 >    — sin ella, el paso 4 de más abajo (convertir tu cuenta en staff) falla con
 >    `Solo el staff puede cambiar el rol o el estado de una alumna`.
+> 3. [`migraciones/0003_tabla_coaches.sql`](./migraciones/0003_tabla_coaches.sql)
+>    — crea la tabla de coaches y siembra las tres que ya tenías en el código.
 >
-> Las dos son idempotentes y seguras de correr aunque ya tengas cuentas
+> Todas son idempotentes y seguras de correr aunque ya tengas cuentas
 > registradas.
 
 ### 3. Conectar la aplicación
@@ -86,6 +88,7 @@ los enlaces de recuperación de contraseña apunten al sitio correcto.
 | `reservas` | Una alumna en una clase en una fecha. Guarda también si asistió. |
 | `promociones` | Promociones con su ventana de fechas y sus tres interruptores. |
 | `promociones_leidas` | Qué promociones ha visto cada alumna, para el contador de novedades. |
+| `coaches` | El equipo del estudio: nombre, especialidad, biografía y si está activa. Se gestiona desde `/admin/coaches`. |
 
 Los días se numeran **0 = Lunes … 6 = Domingo**, igual que en la aplicación.
 

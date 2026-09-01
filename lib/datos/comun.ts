@@ -1,6 +1,7 @@
-import type { Booking, ClassSession, DayConfig, Promocion, User } from "@/lib/types";
+import type { Booking, ClassSession, Coach, DayConfig, Promocion, User } from "@/lib/types";
 import type {
   ClaseFila,
+  CoachFila,
   DiaFila,
   PerfilFila,
   PromocionFila,
@@ -70,6 +71,17 @@ export function aPromocion(fila: PromocionFila): Promocion {
     activa: fila.activa,
     enInicio: fila.en_inicio,
     notificar: fila.notificar,
+    creadaEn: fila.creada_en,
+  };
+}
+
+export function aCoach(fila: CoachFila): Coach {
+  return {
+    id: fila.id,
+    nombre: fila.nombre,
+    especialidad: fila.especialidad,
+    bio: fila.bio,
+    activa: fila.activa,
     creadaEn: fila.creada_en,
   };
 }

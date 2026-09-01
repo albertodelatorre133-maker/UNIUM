@@ -16,6 +16,18 @@ insert into public.configuracion_dias (day, activo, apertura, cierre) values
   (6, false, '08:00', '11:00')
 on conflict (day) do nothing;
 
+-- Coaches
+insert into public.coaches (nombre, especialidad, bio)
+select * from (values
+  ('Valeria Ortiz', 'Fuerza funcional',
+   'Especialista en progresiones de fuerza y técnica. Diseña bloques que respetan el ciclo y la biomecánica femenina.'),
+  ('Camila Rueda', 'Movilidad y core',
+   'Fisioterapeuta y coach. Trabaja rangos articulares, respiración y control profundo del centro.'),
+  ('Daniela Sáenz', 'HIIT y acondicionamiento',
+   'Sesiones de alta intensidad medidas al detalle: potencia, ritmo y recuperación activa.')
+) as nuevas (nombre, especialidad, bio)
+where not exists (select 1 from public.coaches c where c.nombre = nuevas.nombre);
+
 -- Clases semanales
 insert into public.clases (titulo, descripcion, day, hora, duracion, coach, cupo, semanal)
 select * from (values

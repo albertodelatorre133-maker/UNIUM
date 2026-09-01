@@ -9,8 +9,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { crearEstadoInicial } from "./seed";
-import type { AppState, Booking, ClassSession, DayConfig, Promocion, User } from "./types";
+import { COACHES, crearEstadoInicial } from "./seed";
+import type { AppState, Booking, ClassSession, Coach, DayConfig, Promocion, User } from "./types";
 import { addDays, dayIndex, fromISODate, hoyISO, startOfWeek, toISODate } from "./date";
 import { clienteNavegador, hayBaseDeDatos } from "./supabase/cliente";
 import { aReserva, aUsuario } from "./datos/comun";
@@ -19,6 +19,7 @@ import * as datosConfig from "./datos/configuracion";
 import * as datosClases from "./datos/clases";
 import * as datosReservas from "./datos/reservas";
 import * as datosPromos from "./datos/promociones";
+import * as datosCoaches from "./datos/coaches";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -63,6 +64,9 @@ interface StoreValue {
   crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => Promise<void>;
   actualizarPromocion: (id: string, cambios: Partial<Promocion>) => Promise<void>;
   eliminarPromocion: (id: string) => Promise<void>;
+  crearCoach: (coach: Omit<Coach, "id" | "creadaEn">) => Promise<void>;
+  actualizarCoach: (id: string, cambios: Partial<Coach>) => Promise<void>;
+  eliminarCoach: (id: string) => Promise<void>;
   promocionesVigentes: () => Promocion[];
   promocionesDeInicio: () => Promocion[];
   notificaciones: () => NotificacionPromo[];
@@ -88,6 +92,7 @@ function leerEstado(): AppState {
         return {
           ...parsed,
           promociones: parsed.promociones ?? [],
+          coaches: parsed.coaches ?? COACHES,
           leidas: parsed.leidas ?? {},
         };
       }
@@ -108,6 +113,7 @@ const ESTADO_VACIO: AppState = {
   classes: [],
   bookings: [],
   promociones: [],
+  coaches: [],
   leidas: {},
   sessionUserId: null,
 };
@@ -123,10 +129,11 @@ async function cargarEstadoRemoto(): Promise<AppState> {
   const { data: sesion } = await sb.auth.getUser();
   const sessionUserId = sesion.user?.id ?? null;
 
-  const [config, classes, promociones, perfiles, reservas, leidasFila] = await Promise.all([
+  const [config, classes, promociones, coaches, perfiles, reservas, leidasFila] = await Promise.all([
     datosConfig.leerConfiguracion(),
     datosClases.listarClases(),
     datosPromos.listarPromociones(),
+    datosCoaches.listarCoaches(),
     sb.from("perfiles").select("*"),
     sb.from("reservas").select("*"),
     sb.from("promociones_leidas").select("*"),
@@ -147,6 +154,7 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     classes,
     bookings: (reservas.data ?? []).map(aReserva),
     promociones,
+    coaches,
     leidas,
     sessionUserId,
   };
@@ -439,6 +447,60 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [remoto, recargar],
   );
 
+  const crearCoach = useCallback(
+    async (coach: Omit<Coach, "id" | "creadaEn">) => {
+      if (remoto) {
+        await datosCoaches.crearCoach(coach);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        coaches: [...s.coaches, { ...coach, id: id("cch"), creadaEn: new Date().toISOString() }],
+      }));
+    },
+    [remoto, recargar],
+  );
+
+  const actualizarCoach = useCallback(
+    async (coachId: string, cambios: Partial<Coach>) => {
+      if (remoto) {
+        await datosCoaches.actualizarCoach(coachId, cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => {
+        const anterior = s.coaches.find((c) => c.id === coachId);
+        const renombrada = anterior && cambios.nombre && cambios.nombre !== anterior.nombre;
+        return {
+          ...s,
+          coaches: s.coaches.map((c) => (c.id === coachId ? { ...c, ...cambios } : c)),
+          // clases.coach guarda el nombre como texto libre: al renombrar aquí
+          // se actualiza también en las clases ya creadas, igual que hace el
+          // disparador propagar_nombre_coach() del lado de la base.
+          classes: renombrada
+            ? s.classes.map((cl) =>
+                cl.coach === anterior!.nombre ? { ...cl, coach: cambios.nombre! } : cl,
+              )
+            : s.classes,
+        };
+      });
+    },
+    [remoto, recargar],
+  );
+
+  const eliminarCoach = useCallback(
+    async (coachId: string) => {
+      if (remoto) {
+        await datosCoaches.eliminarCoach(coachId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, coaches: s.coaches.filter((c) => c.id !== coachId) }));
+    },
+    [remoto, recargar],
+  );
+
   /** Activa y dentro de su ventana de fechas. */
   const promocionesVigentes = useCallback(() => {
     const hoy = hoyISO();
@@ -586,6 +648,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     crearPromocion,
     actualizarPromocion,
     eliminarPromocion,
+    crearCoach,
+    actualizarCoach,
+    eliminarCoach,
     promocionesVigentes,
     promocionesDeInicio,
     notificaciones,

@@ -3,6 +3,7 @@
 import {
   Activity,
   AlertCircle,
+  Award,
   Bell,
   ArmchairIcon,
   ArrowLeft,
@@ -58,6 +59,7 @@ import {
 const ICONOS: Record<string, LucideIcon> = {
   add: Plus,
   arrow_back: ArrowLeft,
+  badge: Award,
   campaign: Megaphone,
   calendar_add_on: CalendarPlus,
   calendar_month: CalendarDays,

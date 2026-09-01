@@ -6,14 +6,15 @@ import { Suspense, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { Cargando } from "@/components/Guard";
 import { useStore } from "@/lib/store";
-import { COACHES, ESTUDIO } from "@/lib/seed";
+import { ESTUDIO } from "@/lib/seed";
 import { formatoLargo, hoyISO, sumarMinutos } from "@/lib/date";
+import { inicialesDe } from "@/lib/texto";
 
 function DetalleClase() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const fecha = search.get("fecha") ?? hoyISO();
-  const { sesion, reservar, cancelar } = useStore();
+  const { state, sesion, reservar, cancelar } = useStore();
   const [aviso, setAviso] = useState<string | null>(null);
 
   const s = sesion(params.id, fecha);
@@ -31,7 +32,7 @@ function DetalleClase() {
     );
   }
 
-  const coach = COACHES.find((c) => c.nombre === s.clase.coach);
+  const coach = state.coaches.find((c) => c.nombre === s.clase.coach);
   const lleno = s.disponibles === 0 && !s.reservaPropia;
 
   return (
@@ -128,7 +129,7 @@ function DetalleClase() {
             <span className="eyebrow">Tu coach</span>
             <div className="mt-5 flex items-start gap-5">
               <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-primary/30 bg-gold-gradient font-display text-xl font-bold text-ink-900">
-                {coach?.iniciales ?? s.clase.coach.slice(0, 2).toUpperCase()}
+                {inicialesDe(coach?.nombre ?? s.clase.coach)}
               </span>
               <div>
                 <h2 className="font-display text-xl font-semibold uppercase tracking-wide">

@@ -56,11 +56,18 @@ export interface Promocion {
   creadaEn: string;
 }
 
+/**
+ * Coach del estudio, gestionada desde el panel de administración. Las
+ * iniciales del avatar se calculan del nombre con `inicialesDe()` en vez de
+ * guardarse aparte, así nunca quedan desincronizadas.
+ */
 export interface Coach {
+  id: string;
   nombre: string;
   especialidad: string;
   bio: string;
-  iniciales: string;
+  activa: boolean;
+  creadaEn: string;
 }
 
 export interface AppState {
@@ -69,6 +76,7 @@ export interface AppState {
   classes: ClassSession[];
   bookings: Booking[];
   promociones: Promocion[];
+  coaches: Coach[];
   /** Promociones ya vistas por cada alumna: userId -> ids de promocion. */
   leidas: Record<string, string[]>;
   sessionUserId: string | null;

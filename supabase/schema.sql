@@ -39,6 +39,19 @@ create table if not exists public.configuracion_dias (
   constraint rango_horario_valido check (apertura < cierre)
 );
 
+-- Coaches del estudio. clases.coach guarda el nombre como texto libre (no una
+-- referencia): ver la función propagar_nombre_coach() más abajo, que es la
+-- que mantiene sincronizadas las clases ya creadas cuando alguien cambia su
+-- nombre aquí.
+create table if not exists public.coaches (
+  id            uuid primary key default gen_random_uuid(),
+  nombre        text not null,
+  especialidad  text not null default '',
+  bio           text not null default '',
+  activa        boolean not null default true,
+  creada_en     timestamptz not null default now()
+);
+
 -- Clases del calendario. Las semanales se repiten cada semana en su día;
 -- las puntuales llevan una fecha concreta.
 create table if not exists public.clases (
@@ -92,6 +105,7 @@ create table if not exists public.promociones_leidas (
 );
 
 -- --------------------------------------------------------------- índices ----
+create index if not exists coaches_activa_idx       on public.coaches (activa);
 create index if not exists clases_dia_hora_idx      on public.clases (day, hora);
 create index if not exists reservas_fecha_idx       on public.reservas (fecha);
 create index if not exists reservas_clase_fecha_idx on public.reservas (clase_id, fecha);
@@ -218,6 +232,28 @@ create trigger reservas_validar
   before insert on public.reservas
   for each row execute function public.validar_reserva();
 
+-- clases.coach guarda el nombre como texto libre, así que renombrar una coach
+-- aquí no cambiaría por sí solo las clases ya creadas con su nombre anterior.
+-- Este disparador propaga el cambio para que sí lo haga.
+create or replace function public.propagar_nombre_coach()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.nombre is distinct from old.nombre then
+    update public.clases set coach = new.nombre where coach = old.nombre;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists coaches_propagar_nombre on public.coaches;
+create trigger coaches_propagar_nombre
+  after update on public.coaches
+  for each row execute function public.propagar_nombre_coach();
+
 -- Ocupación por clase y fecha. Las alumnas necesitan saber cuántos cupos
 -- quedan sin poder ver quién reservó, así que se expone solo el agregado.
 create or replace function public.ocupacion(desde date, hasta date)
@@ -238,6 +274,7 @@ grant execute on function public.ocupacion(date, date) to anon, authenticated;
 -- ------------------------------------------------- seguridad por filas -----
 alter table public.perfiles            enable row level security;
 alter table public.configuracion_dias  enable row level security;
+alter table public.coaches             enable row level security;
 alter table public.clases              enable row level security;
 alter table public.reservas            enable row level security;
 alter table public.promociones         enable row level security;
@@ -263,6 +300,16 @@ create policy configuracion_leer on public.configuracion_dias
 
 drop policy if exists configuracion_escribir on public.configuracion_dias;
 create policy configuracion_escribir on public.configuracion_dias
+  for all to authenticated using (public.es_admin()) with check (public.es_admin());
+
+-- coaches: la landing solo ve a las activas; el staff las ve y gestiona todas.
+drop policy if exists coaches_leer on public.coaches;
+create policy coaches_leer on public.coaches
+  for select to anon, authenticated
+  using (activa or public.es_admin());
+
+drop policy if exists coaches_escribir on public.coaches;
+create policy coaches_escribir on public.coaches
   for all to authenticated using (public.es_admin()) with check (public.es_admin());
 
 drop policy if exists clases_leer on public.clases;

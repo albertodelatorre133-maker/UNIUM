@@ -14,6 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           items={[
             { href: "/admin", label: "Agenda", icono: "calendar_month" },
             { href: "/admin/alumnas", label: "Alumnas", icono: "groups" },
+            { href: "/admin/coaches", label: "Coaches", icono: "badge" },
             { href: "/admin/asistencia", label: "Asistencia", icono: "how_to_reg" },
             { href: "/admin/promociones", label: "Promos", icono: "campaign" },
             { href: "/admin/configuracion", label: "Ajustes", icono: "tune" },

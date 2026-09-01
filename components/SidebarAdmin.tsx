@@ -9,6 +9,7 @@ import { useStore } from "@/lib/store";
 const ENLACES = [
   { href: "/admin", label: "Calendario", icono: "calendar_month" },
   { href: "/admin/alumnas", label: "Alumnas", icono: "groups" },
+  { href: "/admin/coaches", label: "Coaches", icono: "badge" },
   { href: "/admin/asistencia", label: "Asistencia", icono: "how_to_reg" },
   { href: "/admin/promociones", label: "Promociones", icono: "campaign" },
   { href: "/admin/configuracion", label: "Configuración", icono: "tune" },

@@ -72,6 +72,15 @@ export type PromocionLeidaFila = {
   leida_en: string;
 };
 
+export type CoachFila = {
+  id: string;
+  nombre: string;
+  especialidad: string;
+  bio: string;
+  activa: boolean;
+  creada_en: string;
+};
+
 type Tabla<Fila, Insercion = Partial<Fila>, Actualizacion = Partial<Fila>> = {
   Row: Fila;
   Insert: Insercion;
@@ -89,6 +98,7 @@ export type Database = {
       reservas: Tabla<ReservaFila>;
       promociones: Tabla<PromocionFila>;
       promociones_leidas: Tabla<PromocionLeidaFila>;
+      coaches: Tabla<CoachFila>;
     };
     Views: Record<string, never>;
     Functions: {

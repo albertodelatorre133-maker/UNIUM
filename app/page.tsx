@@ -4,7 +4,8 @@ import { Icono } from "@/components/Icono";
 import { Foto } from "@/components/Foto";
 import { LogoCompleto } from "@/components/Marca";
 import { PromocionesInicio } from "@/components/PromocionesInicio";
-import { CLASES, COACHES, ESTUDIO, FOTOS } from "@/lib/seed";
+import { CoachesInicio } from "@/components/CoachesInicio";
+import { CLASES, ESTUDIO, FOTOS } from "@/lib/seed";
 import { DIAS, sumarMinutos } from "@/lib/date";
 
 const METRICAS = [
@@ -214,29 +215,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* COACHES */}
-      <section id="coaches" className="section scroll-mt-24 py-20">
-        <span className="eyebrow">Quién te acompaña</span>
-        <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
-          Nuestras <span className="gold-text">coaches</span>
-        </h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {COACHES.map((c) => (
-            <article key={c.nombre} className="glass p-8 text-center">
-              <span className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-primary/30 bg-gold-gradient font-display text-2xl font-bold text-ink-900">
-                {c.iniciales}
-              </span>
-              <h3 className="mt-6 font-display text-xl font-semibold uppercase tracking-wide">
-                {c.nombre}
-              </h3>
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
-                {c.especialidad}
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-muted">{c.bio}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      {/* COACHES publicadas desde el panel de administración */}
+      <CoachesInicio />
 
       {/* UBICACIÓN */}
       <section id="ubicacion" className="section scroll-mt-24 py-20">

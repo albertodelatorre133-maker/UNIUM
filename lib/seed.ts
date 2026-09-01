@@ -3,22 +3,28 @@ import type { AppState, Booking, ClassSession, Coach, DayConfig, Promocion, User
 
 export const COACHES: Coach[] = [
   {
+    id: "cch-1",
     nombre: "Valeria Ortiz",
     especialidad: "Fuerza funcional",
-    iniciales: "VO",
     bio: "Especialista en progresiones de fuerza y técnica. Diseña bloques que respetan el ciclo y la biomecánica femenina.",
+    activa: true,
+    creadaEn: new Date().toISOString(),
   },
   {
+    id: "cch-2",
     nombre: "Camila Rueda",
     especialidad: "Movilidad y core",
-    iniciales: "CR",
     bio: "Fisioterapeuta y coach. Trabaja rangos articulares, respiración y control profundo del centro.",
+    activa: true,
+    creadaEn: new Date().toISOString(),
   },
   {
+    id: "cch-3",
     nombre: "Daniela Sáenz",
     especialidad: "HIIT y acondicionamiento",
-    iniciales: "DS",
     bio: "Sesiones de alta intensidad medidas al detalle: potencia, ritmo y recuperación activa.",
+    activa: true,
+    creadaEn: new Date().toISOString(),
   },
 ];
 
@@ -312,6 +318,7 @@ export function crearEstadoInicial(): AppState {
     classes: CLASES,
     bookings,
     promociones: promocionesIniciales(new Date()),
+    coaches: COACHES,
     leidas: {},
     sessionUserId: null,
   };
