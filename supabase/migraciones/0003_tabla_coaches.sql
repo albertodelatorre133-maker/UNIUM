@@ -53,14 +53,10 @@ create trigger coaches_propagar_nombre
   after update on public.coaches
   for each row execute function public.propagar_nombre_coach();
 
--- Siembra las tres coaches que ya tenías en el código, para no perderlas.
+-- Siembra la coach del estudio, para no perderla.
 insert into public.coaches (nombre, especialidad, bio)
 select * from (values
-  ('Valeria Ortiz', 'Fuerza funcional',
-   'Especialista en progresiones de fuerza y técnica. Diseña bloques que respetan el ciclo y la biomecánica femenina.'),
-  ('Camila Rueda', 'Movilidad y core',
-   'Fisioterapeuta y coach. Trabaja rangos articulares, respiración y control profundo del centro.'),
-  ('Daniela Sáenz', 'HIIT y acondicionamiento',
-   'Sesiones de alta intensidad medidas al detalle: potencia, ritmo y recuperación activa.')
+  ('Cecilia De La Torre', 'Entrenamiento funcional integral',
+   'Fundadora y entrenadora principal de UNIUM. Diseña y guía cada sesión del estudio.')
 ) as nuevas (nombre, especialidad, bio)
 where not exists (select 1 from public.coaches c where c.nombre = nuevas.nombre);

@@ -19,9 +19,19 @@ export function CoachesInicio() {
     <section id="coaches" className="section scroll-mt-24 py-20">
       <span className="eyebrow">Quién te acompaña</span>
       <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
-        Nuestras <span className="gold-text">coaches</span>
+        {coaches.length === 1 ? (
+          <>
+            Tu <span className="gold-text">coach</span>
+          </>
+        ) : (
+          <>
+            Nuestras <span className="gold-text">coaches</span>
+          </>
+        )}
       </h2>
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
+      <div
+        className={`mt-10 grid gap-5 ${coaches.length === 1 ? "max-w-sm" : "md:grid-cols-3"}`}
+      >
         {coaches.map((c) => (
           <article key={c.id} className="glass p-8 text-center">
             <span className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-primary/30 bg-gold-gradient font-display text-2xl font-bold text-ink-900">
