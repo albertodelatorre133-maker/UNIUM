@@ -31,17 +31,17 @@ export default function ConfiguracionPage() {
     <div className="space-y-8">
       <header>
         <span className="eyebrow">Motor del calendario</span>
-        <h1 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight sm:text-5xl">
+        <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
           Configuración del <span className="gold-text">estudio</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted">
+        <p className="mt-2 max-w-2xl text-[13px] text-muted sm:text-sm">
           Define qué días abre el estudio y el horario operativo de cada uno. Estas franjas
           determinan los horarios disponibles al crear clases y los días que las alumnas ven como
           cerrados.
         </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {[
           { icono: "event_available", valor: String(diasActivos), etiqueta: "Días activos" },
           { icono: "schedule", valor: String(7 - diasActivos), etiqueta: "Días cerrados" },
@@ -51,12 +51,12 @@ export default function ConfiguracionPage() {
             etiqueta: "Rangos inválidos",
           },
         ].map((m) => (
-          <div key={m.etiqueta} className="glass flex items-center gap-4 p-5">
+          <div key={m.etiqueta} className="glass flex items-center gap-3 p-3.5 sm:gap-4 sm:p-5">
             <span className="grid h-11 w-11 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
               <Icono nombre={m.icono} size={16} />
             </span>
             <div>
-              <p className="font-display text-2xl font-bold text-white">{m.valor}</p>
+              <p className="font-display text-xl font-bold text-white sm:text-2xl">{m.valor}</p>
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-dim">
                 {m.etiqueta}
               </p>
@@ -65,7 +65,7 @@ export default function ConfiguracionPage() {
         ))}
       </section>
 
-      <section className="glass p-6 sm:p-8">
+      <section className="glass p-5 sm:p-8">
         <h2 className="font-display text-2xl font-semibold uppercase tracking-wide">
           Horario operativo
         </h2>

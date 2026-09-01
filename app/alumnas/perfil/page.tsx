@@ -28,14 +28,14 @@ export default function PerfilPage() {
     <div className="space-y-8">
       <header>
         <span className="eyebrow">Mi perfil</span>
-        <h1 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight sm:text-5xl">
+        <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
           {usuario.nombre}
         </h1>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
         <aside className="space-y-6">
-          <section className="glass-strong p-7">
+          <section className="glass-strong p-5 sm:p-7">
             <div className="flex items-center gap-4">
               <span className="grid h-16 w-16 place-items-center rounded-full border border-primary/30 bg-gold-gradient font-display text-xl font-bold text-ink-900">
                 {usuario.nombre
@@ -96,7 +96,7 @@ export default function PerfilPage() {
         </aside>
 
         <div className="space-y-6">
-          <section className="glass p-7">
+          <section className="glass p-5 sm:p-7">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl font-semibold uppercase tracking-wide">
                 Próximas clases
@@ -157,7 +157,7 @@ export default function PerfilPage() {
             )}
           </section>
 
-          <section className="glass p-7">
+          <section className="glass p-5 sm:p-7">
             <h2 className="font-display text-2xl font-semibold uppercase tracking-wide">
               Clases pasadas
             </h2>

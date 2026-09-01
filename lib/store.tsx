@@ -9,10 +9,15 @@ import React, {
   useState,
 } from "react";
 import { crearEstadoInicial } from "./seed";
-import type { AppState, Booking, ClassSession, DayConfig, User } from "./types";
+import type { AppState, Booking, ClassSession, DayConfig, Promocion, User } from "./types";
 import { addDays, dayIndex, fromISODate, hoyISO, startOfWeek, toISODate } from "./date";
 
-const STORAGE_KEY = "unium.state.v1";
+const STORAGE_KEY = "unium.state.v2";
+
+export interface NotificacionPromo {
+  promocion: Promocion;
+  leida: boolean;
+}
 
 export interface SesionDelDia {
   clase: ClassSession;
@@ -43,6 +48,14 @@ interface StoreValue {
   cancelar: (bookingId: string) => void;
   marcarAsistencia: (bookingId: string, asistio: boolean) => void;
   cambiarEstadoAlumna: (userId: string) => void;
+  crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => void;
+  actualizarPromocion: (id: string, cambios: Partial<Promocion>) => void;
+  eliminarPromocion: (id: string) => void;
+  promocionesVigentes: () => Promocion[];
+  promocionesDeInicio: () => Promocion[];
+  notificaciones: () => NotificacionPromo[];
+  sinLeer: number;
+  marcarPromocionesLeidas: () => void;
   sesionesDeLaSemana: (offsetSemanas: number) => SesionDelDia[][];
   sesion: (classId: string, fecha: string) => SesionDelDia | null;
   reservasDeUsuario: (userId: string) => Array<{ booking: Booking; clase: ClassSession }>;
@@ -58,7 +71,14 @@ function leerEstado(): AppState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as AppState;
-      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.classes)) return parsed;
+      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.classes)) {
+        // Campos añadidos después de la primera versión guardada.
+        return {
+          ...parsed,
+          promociones: parsed.promociones ?? [],
+          leidas: parsed.leidas ?? {},
+        };
+      }
     }
   } catch {
     /* estado corrupto: se regenera la semilla */
@@ -195,6 +215,69 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const crearPromocion = useCallback((promo: Omit<Promocion, "id" | "creadaEn">) => {
+    setState((s) => ({
+      ...s,
+      promociones: [
+        { ...promo, id: id("prm"), creadaEn: new Date().toISOString() },
+        ...s.promociones,
+      ],
+    }));
+  }, []);
+
+  const actualizarPromocion = useCallback((promoId: string, cambios: Partial<Promocion>) => {
+    setState((s) => ({
+      ...s,
+      promociones: s.promociones.map((p) => (p.id === promoId ? { ...p, ...cambios } : p)),
+    }));
+  }, []);
+
+  const eliminarPromocion = useCallback((promoId: string) => {
+    setState((s) => ({
+      ...s,
+      promociones: s.promociones.filter((p) => p.id !== promoId),
+      leidas: Object.fromEntries(
+        Object.entries(s.leidas).map(([uid, ids]) => [uid, ids.filter((x) => x !== promoId)]),
+      ),
+    }));
+  }, []);
+
+  /** Activa y dentro de su ventana de fechas. */
+  const promocionesVigentes = useCallback(() => {
+    const hoy = hoyISO();
+    return state.promociones
+      .filter((p) => p.activa && p.desde <= hoy && p.hasta >= hoy)
+      .sort((a, b) => b.creadaEn.localeCompare(a.creadaEn));
+  }, [state.promociones]);
+
+  const promocionesDeInicio = useCallback(
+    () => promocionesVigentes().filter((p) => p.enInicio),
+    [promocionesVigentes],
+  );
+
+  const notificaciones = useCallback((): NotificacionPromo[] => {
+    const vistas = state.sessionUserId ? (state.leidas[state.sessionUserId] ?? []) : [];
+    return promocionesVigentes()
+      .filter((p) => p.notificar)
+      .map((promocion) => ({ promocion, leida: vistas.includes(promocion.id) }));
+  }, [promocionesVigentes, state.leidas, state.sessionUserId]);
+
+  const sinLeer = useMemo(
+    () => notificaciones().filter((n) => !n.leida).length,
+    [notificaciones],
+  );
+
+  const marcarPromocionesLeidas = useCallback(() => {
+    setState((s) => {
+      if (!s.sessionUserId) return s;
+      const hoy = hoyISO();
+      const ids = s.promociones
+        .filter((p) => p.activa && p.notificar && p.desde <= hoy && p.hasta >= hoy)
+        .map((p) => p.id);
+      return { ...s, leidas: { ...s.leidas, [s.sessionUserId]: ids } };
+    });
+  }, []);
+
   const construirSesion = useCallback(
     (clase: ClassSession, fecha: string): SesionDelDia => {
       const reservadas = cuposUsados(clase.id, fecha);
@@ -293,6 +376,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     cancelar,
     marcarAsistencia,
     cambiarEstadoAlumna,
+    crearPromocion,
+    actualizarPromocion,
+    eliminarPromocion,
+    promocionesVigentes,
+    promocionesDeInicio,
+    notificaciones,
+    sinLeer,
+    marcarPromocionesLeidas,
     sesionesDeLaSemana,
     sesion,
     reservasDeUsuario,

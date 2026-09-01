@@ -8,6 +8,7 @@ import { useStore } from "@/lib/store";
 
 const ENLACES = [
   { href: "#metodo", label: "Método" },
+  { href: "#promociones", label: "Promos" },
   { href: "#horarios", label: "Horarios" },
   { href: "#coaches", label: "Coaches" },
   { href: "#ubicacion", label: "Ubicación" },

@@ -37,10 +37,10 @@ function ControlAsistencia() {
       <header className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <span className="eyebrow">Clase en curso</span>
-          <h1 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight sm:text-5xl">
+          <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
             Control de <span className="gold-text">asistencia</span>
           </h1>
-          <p className="mt-3 max-w-xl text-sm text-muted">
+          <p className="mt-2 max-w-xl text-[13px] text-muted sm:text-sm">
             Selecciona una sesión de la semana y marca la asistencia de cada alumna en tiempo real.
           </p>
         </div>
@@ -76,7 +76,7 @@ function ControlAsistencia() {
         </div>
       ) : (
         <>
-          <section className="glass-strong flex flex-col gap-6 p-7 lg:flex-row lg:items-center lg:justify-between">
+          <section className="glass-strong flex flex-col gap-5 p-5 sm:p-7 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="chip-gold">{formatoLargo(actual.fecha)}</span>
@@ -84,7 +84,7 @@ function ControlAsistencia() {
                   {actual.clase.hora} – {sumarMinutos(actual.clase.hora, actual.clase.duracion)}
                 </span>
               </div>
-              <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight">
+              <h2 className="mt-4 font-display text-2xl font-bold uppercase tracking-tight sm:text-3xl">
                 {actual.clase.titulo}
               </h2>
               <p className="mt-1 flex items-center gap-2 text-sm text-muted">
@@ -101,7 +101,7 @@ function ControlAsistencia() {
               ].map((m) => (
                 <div
                   key={m.etiqueta}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center"
+                  className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3.5 text-center sm:px-5 sm:py-4"
                 >
                   <p className="font-display text-3xl font-bold gold-text">{m.valor}</p>
                   <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-dim">
@@ -112,7 +112,7 @@ function ControlAsistencia() {
             </div>
           </section>
 
-          <section className="glass p-6 sm:p-8">
+          <section className="glass p-5 sm:p-8">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-xl font-semibold uppercase tracking-wide">
                 Lista de reservas

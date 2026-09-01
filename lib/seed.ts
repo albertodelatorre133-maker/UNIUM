@@ -1,5 +1,5 @@
 import { addDays, startOfWeek, toISODate } from "./date";
-import type { AppState, Booking, ClassSession, Coach, DayConfig, User } from "./types";
+import type { AppState, Booking, ClassSession, Coach, DayConfig, Promocion, User } from "./types";
 
 export const COACHES: Coach[] = [
   {
@@ -21,6 +21,26 @@ export const COACHES: Coach[] = [
     bio: "Sesiones de alta intensidad medidas al detalle: potencia, ritmo y recuperación activa.",
   },
 ];
+
+/**
+ * Fotografias del estudio. Copia los archivos en `public/fotos/` con estos
+ * nombres exactos; mientras no existan, el componente <Foto> dibuja un
+ * marcador con la marca en lugar de una imagen rota.
+ */
+export const FOTOS = {
+  claseGrupal: {
+    src: "/fotos/clase-grupal.jpg",
+    alt: "Grupo de alumnas en posición de plancha durante una clase en el estudio UNIUM",
+  },
+  fuerza: {
+    src: "/fotos/entrenamiento-fuerza.jpg",
+    alt: "Alumna trabajando press de hombros con mancuernas frente al espejo del estudio",
+  },
+  sala: {
+    src: "/fotos/sala-estudio.jpg",
+    alt: "Sala principal del estudio UNIUM con equipamiento y luz cálida",
+  },
+} as const;
 
 export const ESTUDIO = {
   nombre: "UNIUM Wellness Training",
@@ -189,6 +209,51 @@ const ALUMNAS: Array<Pick<User, "nombre" | "email" | "telefono"> & { activa: boo
 export const CUENTA_DEMO = { email: "mariana@unium.fit", password: "unium123" };
 export const CUENTA_ADMIN = { email: "admin@unium.fit", password: "unium123" };
 
+function promocionesIniciales(hoy: Date): Promocion[] {
+  const desde = (d: number) => toISODate(addDays(hoy, d));
+  return [
+    {
+      id: "prm-1",
+      titulo: "Trae a una amiga",
+      descripcion:
+        "Durante septiembre puedes invitar a una amiga a cualquier clase de la semana sin costo. Solo reserva tu cupo y avísanos en recepción.",
+      etiqueta: "2X1",
+      desde: desde(-3),
+      hasta: desde(25),
+      activa: true,
+      enInicio: true,
+      notificar: true,
+      creadaEn: new Date().toISOString(),
+    },
+    {
+      id: "prm-2",
+      titulo: "Semana de movilidad",
+      descripcion:
+        "Sumamos una sesión extra de Core & Movilidad los miércoles a las 07:00. Cupos limitados a 10 alumnas.",
+      etiqueta: "NUEVA CLASE",
+      desde: desde(-1),
+      hasta: desde(12),
+      activa: true,
+      enInicio: true,
+      notificar: true,
+      creadaEn: new Date().toISOString(),
+    },
+    {
+      id: "prm-3",
+      titulo: "Madrugadoras",
+      descripcion:
+        "Las clases de 05:30 y 06:00 tienen prioridad de reserva para quienes asistan tres veces por semana.",
+      etiqueta: "BENEFICIO",
+      desde: desde(-10),
+      hasta: desde(40),
+      activa: true,
+      enInicio: false,
+      notificar: false,
+      creadaEn: new Date().toISOString(),
+    },
+  ];
+}
+
 export function crearEstadoInicial(): AppState {
   const users: User[] = [
     {
@@ -246,6 +311,8 @@ export function crearEstadoInicial(): AppState {
     config: CONFIG_INICIAL,
     classes: CLASES,
     bookings,
+    promociones: promocionesIniciales(new Date()),
+    leidas: {},
     sessionUserId: null,
   };
 }

@@ -50,10 +50,10 @@ export default function DirectorioAlumnasPage() {
     <div className="space-y-8">
       <header>
         <span className="eyebrow">Directorio · CRM</span>
-        <h1 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight sm:text-5xl">
+        <h1 className="font-display text-[28px] font-bold uppercase tracking-tight sm:mt-2 sm:text-4xl lg:text-5xl">
           Alumnas del <span className="gold-text">estudio</span>
         </h1>
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-2 text-[13px] text-muted sm:text-sm">
           {alumnas.length} alumnas registradas · {activas} activas
         </p>
       </header>
@@ -91,7 +91,92 @@ export default function DirectorioAlumnasPage() {
         </div>
       </section>
 
-      <section className="glass overflow-hidden">
+      {/* Móvil: una tarjeta por alumna en lugar de una tabla con scroll lateral */}
+      <section className="grid gap-3 lg:hidden">
+        {filas.map((f) => (
+          <article key={f.alumna.id} className="glass p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-primary/25 bg-primary/10 font-mono text-[11px] text-primary">
+                  {f.alumna.nombre
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((p) => p[0])
+                    .join("")
+                    .toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-white">{f.alumna.nombre}</p>
+                  <p className="truncate text-[12px] text-muted">{f.alumna.email}</p>
+                </div>
+              </div>
+              <span
+                className={f.alumna.activa ? "chip-gold" : "chip border-white/10 text-muted-dim"}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    f.alumna.activa ? "bg-primary" : "bg-muted-dim"
+                  }`}
+                />
+                {f.alumna.activa ? "Activo" : "Inactivo"}
+              </span>
+            </div>
+
+            <div className="my-3.5 hairline" />
+
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="font-display text-lg font-bold text-white">{f.reservas}</p>
+                <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-dim">
+                  Reservas
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-lg font-bold text-white">{f.asistencias}</p>
+                <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-dim">
+                  Asistencias
+                </p>
+              </div>
+              <div>
+                <p className="font-mono text-[12px] text-white">
+                  {f.ultima ? formatoCorto(f.ultima) : "—"}
+                </p>
+                <p className="font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted-dim">
+                  {f.dias === null ? "Sin registro" : f.dias === 0 ? "Hoy" : `Hace ${f.dias} días`}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <a
+                href={`tel:${f.alumna.telefono.replace(/\s/g, "")}`}
+                className="btn-ghost flex-1 !py-2 text-[11px]"
+              >
+                <Icono nombre="call" size={13} />
+                Llamar
+              </a>
+              <button
+                type="button"
+                onClick={() => cambiarEstadoAlumna(f.alumna.id)}
+                className="btn-ghost flex-1 !py-2 text-[11px]"
+              >
+                {f.alumna.activa ? "Desactivar" : "Activar"}
+              </button>
+            </div>
+          </article>
+        ))}
+
+        {filas.length === 0 && (
+          <div className="glass px-6 py-14 text-center">
+            <Icono nombre="person_search" size={30} className="mx-auto text-muted-dim" />
+            <p className="mt-3 text-sm text-muted">
+              No hay alumnas que coincidan con la búsqueda.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="glass hidden overflow-hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left">
             <thead>

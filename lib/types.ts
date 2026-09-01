@@ -41,6 +41,20 @@ export interface Booking {
   creadaEn: string;
 }
 
+/** Promocion configurable desde el panel de administracion. */
+export interface Promocion {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  etiqueta: string; // distintivo corto: "2X1", "-30%", "NUEVA"
+  desde: string; // YYYY-MM-DD
+  hasta: string; // YYYY-MM-DD
+  activa: boolean;
+  enInicio: boolean; // se muestra en la landing publica
+  notificar: boolean; // llega como notificacion a las alumnas
+  creadaEn: string;
+}
+
 export interface Coach {
   nombre: string;
   especialidad: string;
@@ -53,5 +67,8 @@ export interface AppState {
   config: DayConfig[];
   classes: ClassSession[];
   bookings: Booking[];
+  promociones: Promocion[];
+  /** Promociones ya vistas por cada alumna: userId -> ids de promocion. */
+  leidas: Record<string, string[]>;
   sessionUserId: string | null;
 }
