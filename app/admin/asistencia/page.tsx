@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { Cargando } from "@/components/Guard";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore } from "@/lib/store";
 import { addDays, formatoLargo, hoyISO, MESES, startOfWeek, sumarMinutos } from "@/lib/date";
 
@@ -14,12 +15,25 @@ function ControlAsistencia() {
     sesion,
     reservasDeSesion,
     marcarAsistencia,
+    cancelar,
     nombreCoach,
     esperaDeSesion,
     registrarDesdeEspera,
     salirListaEspera,
   } = useStore();
   const [avisoEspera, setAvisoEspera] = useState<string | null>(null);
+  const [porQuitar, setPorQuitar] = useState<{ id: string; nombre: string } | null>(null);
+  const [quitando, setQuitando] = useState(false);
+  const [errorQuitar, setErrorQuitar] = useState<string | null>(null);
+
+  async function confirmarQuitar() {
+    if (!porQuitar) return;
+    setQuitando(true);
+    const r = await cancelar(porQuitar.id);
+    setQuitando(false);
+    setPorQuitar(null);
+    if (!r.ok) setErrorQuitar(r.error ?? "No fue posible quitar la reserva.");
+  }
 
   const semana = sesionesDeLaSemana(0);
   const sesiones = useMemo(() => semana.flat(), [semana]);
@@ -150,6 +164,13 @@ function ControlAsistencia() {
 
             <div className="my-6 hairline" />
 
+            {errorQuitar && (
+              <p className="mb-5 flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
+                <Icono nombre="error" size={15} />
+                {errorQuitar}
+              </p>
+            )}
+
             {lista.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted">
                 Todavía no hay reservas para esta sesión.
@@ -205,6 +226,17 @@ function ControlAsistencia() {
                           <Icono nombre="undo" size={16} />
                         </button>
                       )}
+                      <button
+                        type="button"
+                        aria-label={`Quitar la reserva de ${alumna.nombre}`}
+                        onClick={() => {
+                          setErrorQuitar(null);
+                          setPorQuitar({ id: booking.id, nombre: alumna.nombre });
+                        }}
+                        className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
+                      >
+                        <Icono nombre="close" size={16} />
+                      </button>
                     </div>
                   </li>
                 ))}
@@ -277,6 +309,17 @@ function ControlAsistencia() {
             </section>
           )}
         </>
+      )}
+
+      {porQuitar && (
+        <ConfirmDialog
+          titulo="¿Quitar esta reserva?"
+          mensaje={`Se liberará el cupo de ${porQuitar.nombre} para esta sesión.`}
+          confirmarTexto="Sí, quitar"
+          cargando={quitando}
+          onConfirmar={confirmarQuitar}
+          onCancelar={() => setPorQuitar(null)}
+        />
       )}
     </div>
   );

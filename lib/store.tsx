@@ -598,7 +598,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const r = await datosReservas.cancelar(bookingId);
         if (r.ok) {
           await recargar();
-          if (clase && booking) notificarNuevaCancelacion(clase.id, booking.fecha);
+          const quien = state.users.find((u) => u.id === state.sessionUserId);
+          // Solo avisa al staff cuando la alumna cancela su propia reserva:
+          // si lo quita el staff desde asistencia, no hace falta avisarse a
+          // sí mismo (ni a otros admins) por algo que ya hicieron ellos.
+          if (clase && booking && quien?.role !== "admin") {
+            notificarNuevaCancelacion(clase.id, booking.fecha);
+          }
         }
         return r;
       }
@@ -628,7 +634,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
       return { ok: true };
     },
-    [remoto, recargar, state.bookings, state.classes, puedeCancelar],
+    [remoto, recargar, state.bookings, state.classes, state.users, state.sessionUserId, puedeCancelar],
   );
 
   const unirseListaEspera = useCallback(
