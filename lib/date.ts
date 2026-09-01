@@ -106,3 +106,8 @@ export function fechaHora(fecha: string, hora: string): Date {
 export function puedeCancelarse(fecha: string, hora: string): boolean {
   return fechaHora(fecha, hora).getTime() - Date.now() > 60 * 60 * 1000;
 }
+
+/** La clase ya empezó (o ya terminó): no se puede agendar. */
+export function yaPaso(fecha: string, hora: string): boolean {
+  return fechaHora(fecha, hora).getTime() <= Date.now();
+}

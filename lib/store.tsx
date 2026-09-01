@@ -24,7 +24,16 @@ import type {
   Promocion,
   User,
 } from "./types";
-import { addDays, dayIndex, fromISODate, hoyISO, puedeCancelarse, startOfWeek, toISODate } from "./date";
+import {
+  addDays,
+  dayIndex,
+  fromISODate,
+  hoyISO,
+  puedeCancelarse,
+  startOfWeek,
+  toISODate,
+  yaPaso,
+} from "./date";
 import { clienteNavegador, hayBaseDeDatos } from "./supabase/cliente";
 import { aReserva, aUsuario } from "./datos/comun";
 import * as datosAuth from "./datos/auth";
@@ -528,6 +537,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const reservar: StoreValue["reservar"] = useCallback(
     async (classId, fecha) => {
+      const clase = state.classes.find((c) => c.id === classId);
+      if (clase && yaPaso(fecha, clase.hora)) {
+        return { ok: false, error: "Esta clase ya pasó." };
+      }
+
       if (remoto) {
         const r = await datosReservas.reservar(classId, fecha);
         if (r.ok) {
@@ -538,7 +552,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!state.sessionUserId) return { ok: false, error: "Inicia sesión para agendar." };
-      const clase = state.classes.find((c) => c.id === classId);
       if (!clase) return { ok: false, error: "La clase ya no está disponible." };
       const yaReservada = state.bookings.some(
         (b) => b.classId === classId && b.fecha === fecha && b.userId === state.sessionUserId,
@@ -913,7 +926,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         reservadas,
         disponibles: Math.max(clase.cupo - reservadas, 0),
         reservaPropia,
-        pasada: fecha < hoyISO(),
+        pasada: yaPaso(fecha, clase.hora),
         enEspera: enEsperaDeSesion.length,
         miEspera,
       };

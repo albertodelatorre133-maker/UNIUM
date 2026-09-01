@@ -276,16 +276,21 @@ as $$
 declare
   limite    smallint;
   dia       smallint;
+  hora_clase time;
   ocupados  integer;
   abierto   boolean;
 begin
-  select cupo, c.day into limite, dia
+  select cupo, c.day, c.hora into limite, dia, hora_clase
   from public.clases c
   where c.id = new.clase_id
   for update;
 
   if limite is null then
     raise exception 'La clase no existe';
+  end if;
+
+  if not public.es_admin() and (new.fecha + hora_clase) <= now() then
+    raise exception 'Esta clase ya pasó';
   end if;
 
   select activo into abierto from public.configuracion_dias where day = dia;
