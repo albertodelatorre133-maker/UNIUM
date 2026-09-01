@@ -5,7 +5,8 @@ export interface User {
   nombre: string;
   email: string;
   telefono: string;
-  password: string;
+  /** Solo se usa en el modo local; con base de datos la gestiona Supabase. */
+  password?: string;
   role: Role;
   activa: boolean;
   creadaEn: string;

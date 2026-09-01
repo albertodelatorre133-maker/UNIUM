@@ -84,10 +84,26 @@ con el isotipo y el nombre del archivo que falta, de modo que la maquetación nu
 
 ## Estado y persistencia
 
-Esta versión es una aplicación *front-end* completa y funcional: el estado (usuarios,
-configuración del estudio, clases, reservas y asistencia) vive en un `StoreProvider` de React y
-se persiste en `localStorage` bajo la clave `unium.state.v2`, con datos semilla realistas. Para
-llevarlo a producción basta con sustituir las acciones de `lib/store.tsx` por llamadas a una API.
+Hoy el estado (usuarios, configuración del estudio, clases, reservas, asistencia y promociones)
+vive en un `StoreProvider` de React y se persiste en `localStorage` bajo la clave
+`unium.state.v2`, con datos semilla realistas. Eso significa que **cada navegador guarda sus
+propios datos**: sirve para probar la aplicación entera, no para operar el estudio.
+
+## Base de datos
+
+El proyecto está preparado para funcionar contra **Supabase** (PostgreSQL más autenticación).
+La preparación ya está en el repositorio:
+
+- `supabase/schema.sql` — tablas, índices, disparadores y seguridad por filas.
+- `supabase/semilla.sql` — horario, clases y promociones iniciales.
+- `supabase/README.md` — puesta en marcha paso a paso.
+- `lib/supabase/` — clientes de navegador y de servidor, más los tipos de la base.
+- `lib/datos/` — las consultas de cada área, listas para usar.
+- `middleware.ts` — refresco de la sesión en cada navegación.
+- `docs/migracion-base-de-datos.md` — qué función del contexto sustituye a cuál.
+
+Mientras no existan `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`, la aplicación
+sigue funcionando con el almacén local: nada se rompe por no tener el proyecto creado todavía.
 
 ## Cuentas de demostración
 
@@ -126,6 +142,11 @@ app/
     asistencia/               control de asistencia
     promociones/              gestor de promociones y avisos
 components/                   Marca, Icono, Foto, Guard, calendario, navegación y notificaciones
-lib/                          tipos, utilidades de fecha, datos semilla y store
-public/                       logo.svg, isotipo.svg y carpeta fotos/
+lib/
+  store.tsx                   estado en React persistido en localStorage
+  supabase/                   clientes y tipos de la base de datos
+  datos/                      consultas por área (sesión, clases, reservas, promociones)
+supabase/                     esquema, semilla y guía de puesta en marcha
+docs/                         mapa de migración del almacén local a la base
+public/                       marca, logotipo, isotipo y carpeta fotos/
 ```
