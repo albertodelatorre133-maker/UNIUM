@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   title: "UNIUM · Wellness Training",
   description:
     "Estudio de entrenamiento funcional para mujeres. Agenda tus clases, consulta horarios y sigue tu asistencia. Unidos somos más fuertes.",
-  icons: { icon: "/isotipo.svg" },
 };
 
 export const viewport: Viewport = {
