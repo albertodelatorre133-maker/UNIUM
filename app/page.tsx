@@ -6,9 +6,9 @@ import { LogoCompleto } from "@/components/Marca";
 import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
 import { MetodoInicio } from "@/components/MetodoInicio";
+import { HorarioInicio } from "@/components/HorarioInicio";
 import { ChipCiudad, LemaFooter, UbicacionInicio } from "@/components/EstudioInicio";
-import { CLASES, COACHES, FOTOS } from "@/lib/seed";
-import { DIAS, sumarMinutos } from "@/lib/date";
+import { FOTOS } from "@/lib/seed";
 
 const METRICAS = [
   { valor: "12", etiqueta: "Alumnas por clase" },
@@ -16,49 +16,6 @@ const METRICAS = [
   { valor: "45'", etiqueta: "Sesión promedio" },
   { valor: "100%", etiqueta: "Entrenamiento guiado" },
 ];
-
-function PreviewHorario() {
-  const porDia = DIAS.map((_, d) =>
-    CLASES.filter((c) => c.day === d).sort((a, b) => a.hora.localeCompare(b.hora)),
-  );
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {DIAS.map((dia, d) => (
-        <div key={dia} className="glass p-5">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold uppercase tracking-[0.16em] text-white">
-              {dia}
-            </h3>
-            <span className="chip">{porDia[d].length} clases</span>
-          </div>
-          <div className="my-4 hairline" />
-          {porDia[d].length === 0 ? (
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-dim">
-              Estudio cerrado
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {porDia[d].map((c) => (
-                <li key={c.id} className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">{c.titulo}</p>
-                    <p className="mt-0.5 text-xs text-muted-dim">
-                      {COACHES.find((co) => co.id === c.coachId)?.nombre ?? "Coach"}
-                    </p>
-                  </div>
-                  <span className="whitespace-nowrap font-mono text-[11px] tracking-wider text-primary">
-                    {c.hora}–{sumarMinutos(c.hora, c.duracion)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function LandingPage() {
   return (
@@ -173,7 +130,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <div className="mt-10">
-          <PreviewHorario />
+          <HorarioInicio />
         </div>
       </section>
 
