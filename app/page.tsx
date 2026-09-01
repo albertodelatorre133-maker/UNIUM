@@ -7,15 +7,9 @@ import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
 import { MetodoInicio } from "@/components/MetodoInicio";
 import { HorarioInicio } from "@/components/HorarioInicio";
+import { MetricasInicio } from "@/components/MetricasInicio";
 import { ChipCiudad, LemaFooter, UbicacionInicio } from "@/components/EstudioInicio";
 import { FOTOS } from "@/lib/seed";
-
-const METRICAS = [
-  { valor: "12", etiqueta: "Alumnas por clase" },
-  { valor: "6", etiqueta: "Días de operación" },
-  { valor: "45'", etiqueta: "Sesión promedio" },
-  { valor: "100%", etiqueta: "Entrenamiento guiado" },
-];
 
 export default function LandingPage() {
   return (
@@ -50,16 +44,7 @@ export default function LandingPage() {
               </a>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {METRICAS.map((m) => (
-                <div key={m.etiqueta}>
-                  <p className="font-display text-3xl font-bold gold-text">{m.valor}</p>
-                  <p className="mt-1 font-mono text-[9.5px] uppercase leading-tight tracking-[0.14em] text-muted-dim">
-                    {m.etiqueta}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <MetricasInicio />
           </div>
 
           <div className="relative order-first mx-auto w-full max-w-md animate-fade-up lg:order-none">

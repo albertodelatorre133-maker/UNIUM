@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Icono, ICONOS_PILARES } from "@/components/Icono";
 import { useStore } from "@/lib/store";
 import { DIAS } from "@/lib/date";
-import type { DayConfig, Estudio, Pilar } from "@/lib/types";
+import type { DayConfig, Estudio, Metrica, Pilar } from "@/lib/types";
 
 const HORAS = Array.from({ length: 24 * 2 }, (_, i) => {
   const h = Math.floor(i / 2);
@@ -16,6 +16,7 @@ const PESTANAS = [
   { id: "horario", label: "Horario", icono: "schedule" },
   { id: "estudio", label: "Estudio", icono: "location_on" },
   { id: "metodo", label: "Método", icono: "fitness_center" },
+  { id: "metricas", label: "Cifras", icono: "trending_up" },
 ] as const;
 
 type Pestana = (typeof PESTANAS)[number]["id"];
@@ -57,6 +58,7 @@ export default function ConfiguracionPage() {
       {tab === "horario" && <PestanaHorario />}
       {tab === "estudio" && <PestanaEstudio />}
       {tab === "metodo" && <PestanaMetodo />}
+      {tab === "metricas" && <PestanaMetricas />}
     </div>
   );
 }
@@ -523,6 +525,196 @@ function PestanaMetodo() {
                 {p.titulo}
               </h3>
               {p.texto && <p className="mt-2 text-[13px] leading-relaxed text-muted">{p.texto}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+type BorradorMetrica = Omit<Metrica, "id" | "orden">;
+
+function borradorMetricaNueva(): BorradorMetrica {
+  return { valor: "", etiqueta: "" };
+}
+
+function PestanaMetricas() {
+  const { state, crearMetrica, actualizarMetrica, eliminarMetrica } = useStore();
+  const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState<string | null>(null);
+  const [borrador, setBorrador] = useState<BorradorMetrica>(borradorMetricaNueva());
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const metricas = [...state.metricas].sort((a, b) => a.orden - b.orden);
+
+  function nueva() {
+    setBorrador(borradorMetricaNueva());
+    setEditando(null);
+    setError(null);
+    setAbierto(true);
+  }
+
+  function editar(m: Metrica) {
+    setBorrador({ valor: m.valor, etiqueta: m.etiqueta });
+    setEditando(m.id);
+    setError(null);
+    setAbierto(true);
+  }
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!borrador.valor.trim() || !borrador.etiqueta.trim()) {
+      setError("Completa el valor y la etiqueta.");
+      return;
+    }
+    setEnviando(true);
+    if (editando) {
+      await actualizarMetrica(editando, borrador);
+    } else {
+      await crearMetrica({ ...borrador, orden: metricas.length });
+    }
+    setEnviando(false);
+    setAbierto(false);
+    setEditando(null);
+  }
+
+  async function mover(id: string, direccion: -1 | 1) {
+    const i = metricas.findIndex((m) => m.id === id);
+    const j = i + direccion;
+    if (i < 0 || j < 0 || j >= metricas.length) return;
+    await Promise.all([
+      actualizarMetrica(metricas[i].id, { orden: metricas[j].orden }),
+      actualizarMetrica(metricas[j].id, { orden: metricas[i].orden }),
+    ]);
+  }
+
+  return (
+    <div className="space-y-5">
+      <section className="glass p-5 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
+              Cifras del hero
+            </h2>
+            <p className="mt-2 max-w-xl text-[13px] text-muted">
+              Los números destacados justo debajo del titular principal de la página de inicio
+              (ej. "12 · Alumnas por clase"). El orden aquí es el orden en que se muestran.
+            </p>
+          </div>
+          <button type="button" className="btn-gold shrink-0" onClick={nueva}>
+            <Icono nombre="add" size={16} />
+            NUEVA CIFRA
+          </button>
+        </div>
+
+        {abierto && (
+          <>
+            <div className="my-5 hairline" />
+            <form className="grid gap-4 sm:grid-cols-2" onSubmit={guardar}>
+              <div>
+                <label htmlFor="m-valor">Valor</label>
+                <input
+                  id="m-valor"
+                  required
+                  placeholder="12"
+                  className="w-full"
+                  value={borrador.valor}
+                  onChange={(e) => setBorrador({ ...borrador, valor: e.target.value })}
+                />
+              </div>
+              <div>
+                <label htmlFor="m-etiqueta">Etiqueta</label>
+                <input
+                  id="m-etiqueta"
+                  required
+                  placeholder="Alumnas por clase"
+                  className="w-full"
+                  value={borrador.etiqueta}
+                  onChange={(e) => setBorrador({ ...borrador, etiqueta: e.target.value })}
+                />
+              </div>
+
+              {error && (
+                <p className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300 sm:col-span-2">
+                  <Icono nombre="error" size={15} />
+                  {error}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:col-span-2">
+                <button type="submit" disabled={enviando} className="btn-gold">
+                  <Icono nombre="save" size={16} />
+                  {enviando ? "GUARDANDO…" : editando ? "GUARDAR CAMBIOS" : "CREAR CIFRA"}
+                </button>
+                <button type="button" className="btn-ghost" onClick={() => setAbierto(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </section>
+
+      {metricas.length === 0 ? (
+        <div className="glass px-6 py-16 text-center">
+          <Icono nombre="trending_up" size={34} className="mx-auto text-muted-dim" />
+          <p className="mt-4 text-sm text-muted">Todavía no has definido ninguna cifra.</p>
+          <button type="button" className="btn-gold mt-6" onClick={nueva}>
+            <Icono nombre="add" size={16} />
+            CREAR LA PRIMERA
+          </button>
+        </div>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {metricas.map((m, i) => (
+            <li
+              key={m.id}
+              className="glass flex items-center justify-between gap-3 p-4"
+            >
+              <div className="min-w-0">
+                <p className="font-display text-2xl font-bold gold-text">{m.valor}</p>
+                <p className="truncate font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-dim">
+                  {m.etiqueta}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Mover arriba"
+                  disabled={i === 0}
+                  onClick={() => mover(m.id, -1)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary disabled:opacity-30"
+                >
+                  <Icono nombre="chevron_left" size={15} className="rotate-90" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Mover abajo"
+                  disabled={i === metricas.length - 1}
+                  onClick={() => mover(m.id, 1)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary disabled:opacity-30"
+                >
+                  <Icono nombre="chevron_right" size={15} className="rotate-90" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Editar ${m.etiqueta}`}
+                  onClick={() => editar(m)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-primary/40 hover:text-primary"
+                >
+                  <Icono nombre="edit" size={15} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Eliminar ${m.etiqueta}`}
+                  onClick={() => eliminarMetrica(m.id)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300"
+                >
+                  <Icono nombre="delete" size={15} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

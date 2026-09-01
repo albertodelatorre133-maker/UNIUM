@@ -102,6 +102,14 @@ export type PilarFila = {
   creada_en: string;
 };
 
+export type MetricaFila = {
+  id: string;
+  valor: string;
+  etiqueta: string;
+  orden: number;
+  creada_en: string;
+};
+
 type Tabla<Fila, Insercion = Partial<Fila>, Actualizacion = Partial<Fila>> = {
   Row: Fila;
   Insert: Insercion;
@@ -122,6 +130,7 @@ export type Database = {
       coaches: Tabla<CoachFila>;
       configuracion_estudio: Tabla<EstudioFila>;
       pilares: Tabla<PilarFila>;
+      metricas: Tabla<MetricaFila>;
     };
     Views: Record<string, never>;
     Functions: {

@@ -1,9 +1,20 @@
-import type { Booking, ClassSession, Coach, DayConfig, Estudio, Pilar, Promocion, User } from "@/lib/types";
+import type {
+  Booking,
+  ClassSession,
+  Coach,
+  DayConfig,
+  Estudio,
+  Metrica,
+  Pilar,
+  Promocion,
+  User,
+} from "@/lib/types";
 import type {
   ClaseFila,
   CoachFila,
   DiaFila,
   EstudioFila,
+  MetricaFila,
   PerfilFila,
   PilarFila,
   PromocionFila,
@@ -107,6 +118,15 @@ export function aPilar(fila: PilarFila): Pilar {
     icono: fila.icono,
     titulo: fila.titulo,
     texto: fila.texto,
+    orden: fila.orden,
+  };
+}
+
+export function aMetrica(fila: MetricaFila): Metrica {
+  return {
+    id: fila.id,
+    valor: fila.valor,
+    etiqueta: fila.etiqueta,
     orden: fila.orden,
   };
 }

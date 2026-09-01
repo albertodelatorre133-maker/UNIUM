@@ -5,6 +5,7 @@ import type {
   ClassSession,
   Coach,
   DayConfig,
+  Metrica,
   Pilar,
   Promocion,
   User,
@@ -231,6 +232,14 @@ export const CLASES: ClassSession[] = [
   },
 ];
 
+/** Cifras destacadas del hero de la landing, editables desde /admin/configuracion. */
+export const METRICAS_INICIALES: Metrica[] = [
+  { id: "mtr-1", valor: "12", etiqueta: "Alumnas por clase", orden: 0 },
+  { id: "mtr-2", valor: "6", etiqueta: "Días de operación", orden: 1 },
+  { id: "mtr-3", valor: "45'", etiqueta: "Sesión promedio", orden: 2 },
+  { id: "mtr-4", valor: "100%", etiqueta: "Entrenamiento guiado", orden: 3 },
+];
+
 const ALUMNAS: Array<Pick<User, "nombre" | "email" | "telefono"> & { activa: boolean }> = [
   { nombre: "Mariana Gómez", email: "mariana@unium.fit", telefono: "+57 310 552 1188", activa: true },
   { nombre: "Laura Restrepo", email: "laura@unium.fit", telefono: "+57 311 664 2044", activa: true },
@@ -350,6 +359,7 @@ export function crearEstadoInicial(): AppState {
     coaches: COACHES,
     estudio: ESTUDIO,
     pilares: PILARES_INICIALES,
+    metricas: METRICAS_INICIALES,
     leidas: {},
     sessionUserId: null,
   };

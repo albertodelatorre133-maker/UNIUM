@@ -9,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { COACHES, ESTUDIO, PILARES_INICIALES, crearEstadoInicial } from "./seed";
+import { COACHES, ESTUDIO, METRICAS_INICIALES, PILARES_INICIALES, crearEstadoInicial } from "./seed";
 import type {
   AppState,
   Booking,
@@ -17,6 +17,7 @@ import type {
   Coach,
   DayConfig,
   Estudio,
+  Metrica,
   Pilar,
   Promocion,
   User,
@@ -32,6 +33,7 @@ import * as datosPromos from "./datos/promociones";
 import * as datosCoaches from "./datos/coaches";
 import * as datosEstudio from "./datos/estudio";
 import * as datosPilares from "./datos/pilares";
+import * as datosMetricas from "./datos/metricas";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -71,6 +73,9 @@ interface StoreValue {
   crearPilar: (pilar: Omit<Pilar, "id">) => Promise<void>;
   actualizarPilar: (id: string, cambios: Partial<Pilar>) => Promise<void>;
   eliminarPilar: (id: string) => Promise<void>;
+  crearMetrica: (metrica: Omit<Metrica, "id">) => Promise<void>;
+  actualizarMetrica: (id: string, cambios: Partial<Metrica>) => Promise<void>;
+  eliminarMetrica: (id: string) => Promise<void>;
   crearClase: (clase: Omit<ClassSession, "id">) => Promise<void>;
   eliminarClase: (id: string) => Promise<void>;
   reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
@@ -112,6 +117,7 @@ function leerEstado(): AppState {
           coaches: parsed.coaches ?? COACHES,
           estudio: parsed.estudio ?? ESTUDIO,
           pilares: parsed.pilares ?? PILARES_INICIALES,
+          metricas: parsed.metricas ?? METRICAS_INICIALES,
           leidas: parsed.leidas ?? {},
         };
       }
@@ -146,6 +152,7 @@ const ESTADO_VACIO: AppState = {
   coaches: [],
   estudio: ESTUDIO_VACIO,
   pilares: [],
+  metricas: [],
   leidas: {},
   sessionUserId: null,
 };
@@ -161,18 +168,29 @@ async function cargarEstadoRemoto(): Promise<AppState> {
   const { data: sesion } = await sb.auth.getUser();
   const sessionUserId = sesion.user?.id ?? null;
 
-  const [config, classes, promociones, coaches, estudio, pilares, perfiles, reservas, leidasFila] =
-    await Promise.all([
-      datosConfig.leerConfiguracion(),
-      datosClases.listarClases(),
-      datosPromos.listarPromociones(),
-      datosCoaches.listarCoaches(),
-      datosEstudio.leerEstudio(),
-      datosPilares.listarPilares(),
-      sb.from("perfiles").select("*"),
-      sb.from("reservas").select("*"),
-      sb.from("promociones_leidas").select("*"),
-    ]);
+  const [
+    config,
+    classes,
+    promociones,
+    coaches,
+    estudio,
+    pilares,
+    metricas,
+    perfiles,
+    reservas,
+    leidasFila,
+  ] = await Promise.all([
+    datosConfig.leerConfiguracion(),
+    datosClases.listarClases(),
+    datosPromos.listarPromociones(),
+    datosCoaches.listarCoaches(),
+    datosEstudio.leerEstudio(),
+    datosPilares.listarPilares(),
+    datosMetricas.listarMetricas(),
+    sb.from("perfiles").select("*"),
+    sb.from("reservas").select("*"),
+    sb.from("promociones_leidas").select("*"),
+  ]);
 
   if (perfiles.error) throw new Error(perfiles.error.message);
   if (reservas.error) throw new Error(reservas.error.message);
@@ -192,6 +210,7 @@ async function cargarEstadoRemoto(): Promise<AppState> {
     coaches,
     estudio,
     pilares,
+    metricas,
     leidas,
     sessionUserId,
   };
@@ -370,6 +389,45 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setState((s) => ({ ...s, pilares: s.pilares.filter((p) => p.id !== pilarId) }));
+    },
+    [remoto, recargar],
+  );
+
+  const crearMetrica = useCallback(
+    async (metrica: Omit<Metrica, "id">) => {
+      if (remoto) {
+        await datosMetricas.crearMetrica(metrica);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, metricas: [...s.metricas, { ...metrica, id: id("mtr") }] }));
+    },
+    [remoto, recargar],
+  );
+
+  const actualizarMetrica = useCallback(
+    async (metricaId: string, cambios: Partial<Metrica>) => {
+      if (remoto) {
+        await datosMetricas.actualizarMetrica(metricaId, cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        metricas: s.metricas.map((m) => (m.id === metricaId ? { ...m, ...cambios } : m)),
+      }));
+    },
+    [remoto, recargar],
+  );
+
+  const eliminarMetrica = useCallback(
+    async (metricaId: string) => {
+      if (remoto) {
+        await datosMetricas.eliminarMetrica(metricaId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, metricas: s.metricas.filter((m) => m.id !== metricaId) }));
     },
     [remoto, recargar],
   );
@@ -731,6 +789,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     crearPilar,
     actualizarPilar,
     eliminarPilar,
+    crearMetrica,
+    actualizarMetrica,
+    eliminarMetrica,
     crearClase,
     eliminarClase,
     reservar,

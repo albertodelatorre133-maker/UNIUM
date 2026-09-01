@@ -91,6 +91,14 @@ export interface Pilar {
   orden: number;
 }
 
+/** Una de las cifras destacadas del hero de la landing (ej. "12 · Alumnas por clase"). */
+export interface Metrica {
+  id: string;
+  valor: string;
+  etiqueta: string;
+  orden: number;
+}
+
 export interface AppState {
   users: User[];
   config: DayConfig[];
@@ -100,6 +108,7 @@ export interface AppState {
   coaches: Coach[];
   estudio: Estudio;
   pilares: Pilar[];
+  metricas: Metrica[];
   /** Promociones ya vistas por cada alumna: userId -> ids de promocion. */
   leidas: Record<string, string[]>;
   sessionUserId: string | null;

@@ -45,6 +45,16 @@ select * from (values
 ) as nuevas (icono, titulo, texto, orden)
 where not exists (select 1 from public.pilares p where p.titulo = nuevas.titulo);
 
+-- Cifras destacadas del hero
+insert into public.metricas (valor, etiqueta, orden)
+select * from (values
+  ('12', 'Alumnas por clase', 0),
+  ('6', 'Días de operación', 1),
+  ('45''', 'Sesión promedio', 2),
+  ('100%', 'Entrenamiento guiado', 3)
+) as nuevas (valor, etiqueta, orden)
+where not exists (select 1 from public.metricas m where m.etiqueta = nuevas.etiqueta);
+
 -- Coaches
 insert into public.coaches (nombre, especialidad, bio)
 select * from (values

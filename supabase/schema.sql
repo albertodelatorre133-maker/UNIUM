@@ -65,6 +65,15 @@ create table if not exists public.pilares (
   creada_en  timestamptz not null default now()
 );
 
+-- Cifras destacadas del hero de la landing (ej. "12 · Alumnas por clase").
+create table if not exists public.metricas (
+  id         uuid primary key default gen_random_uuid(),
+  valor      text not null,
+  etiqueta   text not null,
+  orden      smallint not null default 0,
+  creada_en  timestamptz not null default now()
+);
+
 -- Coaches del estudio. clases.coach_id referencia esta tabla, así que
 -- renombrar una coach aquí se refleja de inmediato en sus clases.
 create table if not exists public.coaches (
@@ -130,6 +139,7 @@ create table if not exists public.promociones_leidas (
 
 -- --------------------------------------------------------------- índices ----
 create index if not exists pilares_orden_idx        on public.pilares (orden);
+create index if not exists metricas_orden_idx       on public.metricas (orden);
 create index if not exists coaches_activa_idx       on public.coaches (activa);
 create index if not exists clases_coach_idx         on public.clases (coach_id);
 create index if not exists clases_dia_hora_idx      on public.clases (day, hora);
@@ -280,6 +290,7 @@ alter table public.perfiles              enable row level security;
 alter table public.configuracion_dias    enable row level security;
 alter table public.configuracion_estudio enable row level security;
 alter table public.pilares               enable row level security;
+alter table public.metricas              enable row level security;
 alter table public.coaches               enable row level security;
 alter table public.clases              enable row level security;
 alter table public.reservas            enable row level security;
@@ -325,6 +336,15 @@ create policy pilares_leer on public.pilares
 
 drop policy if exists pilares_escribir on public.pilares;
 create policy pilares_escribir on public.pilares
+  for all to authenticated using (public.es_admin()) with check (public.es_admin());
+
+-- métricas: lectura pública, gestión solo del staff.
+drop policy if exists metricas_leer on public.metricas;
+create policy metricas_leer on public.metricas
+  for select to anon, authenticated using (true);
+
+drop policy if exists metricas_escribir on public.metricas;
+create policy metricas_escribir on public.metricas
   for all to authenticated using (public.es_admin()) with check (public.es_admin());
 
 -- coaches: la landing solo ve a las activas; el staff las ve y gestiona todas.
