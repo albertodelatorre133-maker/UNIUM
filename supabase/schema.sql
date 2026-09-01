@@ -22,6 +22,9 @@ create table if not exists public.perfiles (
   id         uuid primary key references auth.users on delete cascade,
   nombre     text not null,
   telefono   text not null default '',
+  -- Duplicado de auth.users.email: el cliente no puede leer esa tabla para
+  -- cuentas ajenas, y el directorio de alumnas necesita mostrar el correo.
+  email      text not null default '',
   rol        public.rol_usuario not null default 'alumna',
   activa     boolean not null default true,
   creada_en  timestamptz not null default now()
@@ -121,11 +124,12 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.perfiles (id, nombre, telefono)
+  insert into public.perfiles (id, nombre, telefono, email)
   values (
     new.id,
     coalesce(nullif(new.raw_user_meta_data ->> 'nombre', ''), split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data ->> 'telefono', '')
+    coalesce(new.raw_user_meta_data ->> 'telefono', ''),
+    new.email
   );
   return new;
 end;

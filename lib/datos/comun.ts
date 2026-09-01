@@ -51,7 +51,7 @@ export function aUsuario(fila: PerfilFila): User {
   return {
     id: fila.id,
     nombre: fila.nombre,
-    email: "",
+    email: fila.email,
     telefono: fila.telefono,
     role: fila.rol,
     activa: fila.activa,

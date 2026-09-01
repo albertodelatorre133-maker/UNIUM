@@ -12,9 +12,36 @@ export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({ nombre: "", email: "", telefono: "", password: "" });
   const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [pendienteConfirmar, setPendienteConfirmar] = useState(false);
 
   const set = (campo: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [campo]: e.target.value }));
+
+  if (pendienteConfirmar) {
+    return (
+      <AuthShell
+        titulo="Revisa tu correo"
+        subtitulo="Te enviamos un enlace para confirmar tu cuenta."
+        pie={
+          <>
+            ¿Ya confirmaste?{" "}
+            <Link href="/login" className="font-semibold text-primary hover:underline">
+              Inicia sesión
+            </Link>
+          </>
+        }
+      >
+        <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3.5 text-sm text-muted-soft">
+          <Icono nombre="mail" size={18} className="mt-0.5 shrink-0 text-primary" />
+          <p>
+            Abre el correo que enviamos a <span className="text-white">{form.email}</span> y toca el
+            enlace de confirmación para activar tu cuenta.
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell
@@ -31,16 +58,22 @@ export default function RegisterPage() {
     >
       <form
         className="space-y-4 corto:space-y-3 sm:space-y-5"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           setError(null);
           if (form.password.length < 6) {
             setError("La contraseña debe tener al menos 6 caracteres.");
             return;
           }
-          const res = registrar(form);
+          setEnviando(true);
+          const res = await registrar(form);
+          setEnviando(false);
           if (!res.ok) {
             setError(res.error ?? "No fue posible crear la cuenta.");
+            return;
+          }
+          if (res.sesionActiva === false) {
+            setPendienteConfirmar(true);
             return;
           }
           router.push("/alumnas");
@@ -106,8 +139,8 @@ export default function RegisterPage() {
           </p>
         )}
 
-        <button type="submit" className="btn-gold w-full">
-          CREAR CUENTA
+        <button type="submit" disabled={enviando} className="btn-gold w-full">
+          {enviando ? "CREANDO CUENTA…" : "CREAR CUENTA"}
         </button>
 
         <p className="text-center text-[10.5px] leading-relaxed text-muted-dim">

@@ -51,7 +51,7 @@ export default function PromocionesPage() {
     setAbierto(true);
   }
 
-  function guardar(e: React.FormEvent) {
+  async function guardar(e: React.FormEvent) {
     e.preventDefault();
     if (!borrador.titulo.trim()) {
       setError("Ponle un título a la promoción.");
@@ -67,8 +67,8 @@ export default function PromocionesPage() {
       descripcion: borrador.descripcion.trim(),
       etiqueta: (borrador.etiqueta.trim() || "PROMO").toUpperCase(),
     };
-    if (editando) actualizarPromocion(editando, limpio);
-    else crearPromocion(limpio);
+    if (editando) await actualizarPromocion(editando, limpio);
+    else await crearPromocion(limpio);
     setAbierto(false);
     setEditando(null);
   }

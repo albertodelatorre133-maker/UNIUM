@@ -112,8 +112,8 @@ function DetalleClase() {
                   type="button"
                   disabled={lleno}
                   className="btn-gold w-full text-base sm:w-auto"
-                  onClick={() => {
-                    const res = reservar(s.clase.id, s.fecha);
+                  onClick={async () => {
+                    const res = await reservar(s.clase.id, s.fecha);
                     setAviso(res.ok ? null : (res.error ?? "No fue posible reservar."));
                   }}
                 >

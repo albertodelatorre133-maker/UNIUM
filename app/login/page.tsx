@@ -7,6 +7,7 @@ import { AuthShell } from "@/components/AuthShell";
 import { Icono } from "@/components/Icono";
 import { useStore } from "@/lib/store";
 import { CUENTA_ADMIN, CUENTA_DEMO } from "@/lib/seed";
+import { hayBaseDeDatos } from "@/lib/supabase/cliente";
 
 export default function LoginPage() {
   const { login } = useStore();
@@ -15,9 +16,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [verPass, setVerPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  function entrar(correo: string, clave: string) {
-    const res = login(correo, clave);
+  async function entrar(correo: string, clave: string) {
+    setEnviando(true);
+    const res = await login(correo, clave);
+    setEnviando(false);
     if (!res.ok) {
       setError(res.error ?? "No fue posible iniciar sesión.");
       return;
@@ -91,34 +95,36 @@ export default function LoginPage() {
           </p>
         )}
 
-        <button type="submit" className="btn-gold w-full">
-          ENTRAR
+        <button type="submit" disabled={enviando} className="btn-gold w-full">
+          {enviando ? "ENTRANDO…" : "ENTRAR"}
         </button>
       </form>
 
-      <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 corto:mt-3.5 corto:p-3 sm:mt-7 sm:p-4">
-        <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-dim">
-          Acceso de demostración
-        </p>
-        <div className="mt-2.5 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            className="btn-ghost !py-2 text-xs"
-            onClick={() => entrar(CUENTA_DEMO.email, CUENTA_DEMO.password)}
-          >
-            <Icono nombre="person" size={15} />
-            Alumna
-          </button>
-          <button
-            type="button"
-            className="btn-ghost !py-2 text-xs"
-            onClick={() => entrar(CUENTA_ADMIN.email, CUENTA_ADMIN.password)}
-          >
-            <Icono nombre="shield_person" size={15} />
-            Staff
-          </button>
+      {!hayBaseDeDatos() && (
+        <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 corto:mt-3.5 corto:p-3 sm:mt-7 sm:p-4">
+          <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-dim">
+            Acceso de demostración
+          </p>
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              className="btn-ghost !py-2 text-xs"
+              onClick={() => entrar(CUENTA_DEMO.email, CUENTA_DEMO.password)}
+            >
+              <Icono nombre="person" size={15} />
+              Alumna
+            </button>
+            <button
+              type="button"
+              className="btn-ghost !py-2 text-xs"
+              onClick={() => entrar(CUENTA_ADMIN.email, CUENTA_ADMIN.password)}
+            >
+              <Icono nombre="shield_person" size={15} />
+              Staff
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </AuthShell>
   );
 }

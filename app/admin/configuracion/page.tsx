@@ -172,8 +172,8 @@ export default function ConfiguracionPage() {
           <button
             type="button"
             disabled={invalidos.length > 0}
-            onClick={() => {
-              guardarConfig(config);
+            onClick={async () => {
+              await guardarConfig(config);
               setGuardado(true);
             }}
             className="btn-gold w-full sm:w-auto"

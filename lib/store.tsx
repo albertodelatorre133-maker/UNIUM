@@ -6,11 +6,20 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { crearEstadoInicial } from "./seed";
 import type { AppState, Booking, ClassSession, DayConfig, Promocion, User } from "./types";
 import { addDays, dayIndex, fromISODate, hoyISO, startOfWeek, toISODate } from "./date";
+import { clienteNavegador, hayBaseDeDatos } from "./supabase/cliente";
+import { aReserva, aUsuario } from "./datos/comun";
+import * as datosAuth from "./datos/auth";
+import * as datosConfig from "./datos/configuracion";
+import * as datosClases from "./datos/clases";
+import * as datosReservas from "./datos/reservas";
+import * as datosPromos from "./datos/promociones";
+import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
 
@@ -33,29 +42,32 @@ interface StoreValue {
   state: AppState;
   usuario: User | null;
   alumnas: User[];
-  login: (email: string, password: string) => { ok: boolean; error?: string; role?: User["role"] };
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ ok: boolean; error?: string; role?: User["role"] }>;
   registrar: (datos: {
     nombre: string;
     email: string;
     telefono: string;
     password: string;
-  }) => { ok: boolean; error?: string };
-  salir: () => void;
-  guardarConfig: (config: DayConfig[]) => void;
-  crearClase: (clase: Omit<ClassSession, "id">) => void;
-  eliminarClase: (id: string) => void;
-  reservar: (classId: string, fecha: string) => { ok: boolean; error?: string };
-  cancelar: (bookingId: string) => void;
-  marcarAsistencia: (bookingId: string, asistio: boolean) => void;
-  cambiarEstadoAlumna: (userId: string) => void;
-  crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => void;
-  actualizarPromocion: (id: string, cambios: Partial<Promocion>) => void;
-  eliminarPromocion: (id: string) => void;
+  }) => Promise<{ ok: boolean; error?: string; sesionActiva?: boolean }>;
+  salir: () => Promise<void>;
+  guardarConfig: (config: DayConfig[]) => Promise<void>;
+  crearClase: (clase: Omit<ClassSession, "id">) => Promise<void>;
+  eliminarClase: (id: string) => Promise<void>;
+  reservar: (classId: string, fecha: string) => Promise<{ ok: boolean; error?: string }>;
+  cancelar: (bookingId: string) => Promise<void>;
+  marcarAsistencia: (bookingId: string, asistio: boolean) => Promise<void>;
+  cambiarEstadoAlumna: (userId: string) => Promise<void>;
+  crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => Promise<void>;
+  actualizarPromocion: (id: string, cambios: Partial<Promocion>) => Promise<void>;
+  eliminarPromocion: (id: string) => Promise<void>;
   promocionesVigentes: () => Promocion[];
   promocionesDeInicio: () => Promocion[];
   notificaciones: () => NotificacionPromo[];
   sinLeer: number;
-  marcarPromocionesLeidas: () => void;
+  marcarPromocionesLeidas: () => Promise<void>;
   sesionesDeLaSemana: (offsetSemanas: number) => SesionDelDia[][];
   sesion: (classId: string, fecha: string) => SesionDelDia | null;
   reservasDeUsuario: (userId: string) => Array<{ booking: Booking; clase: ClassSession }>;
@@ -90,19 +102,102 @@ function id(prefijo: string): string {
   return `${prefijo}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(() => crearEstadoInicial());
-  const [hidratado, setHidratado] = useState(false);
+const ESTADO_VACIO: AppState = {
+  users: [],
+  config: [],
+  classes: [],
+  bookings: [],
+  promociones: [],
+  leidas: {},
+  sessionUserId: null,
+};
 
-  useEffect(() => {
-    setState(leerEstado());
-    setHidratado(true);
+/**
+ * Trae el estado completo desde Supabase. Las políticas de seguridad por
+ * filas ya deciden qué ve cada quien (sin sesión: horarios, clases y
+ * promociones vigentes; una alumna: lo suyo; el staff: todo), así que basta
+ * con pedir cada tabla entera y confiar en lo que Postgres deje pasar.
+ */
+async function cargarEstadoRemoto(): Promise<AppState> {
+  const sb = clienteNavegador();
+  const { data: sesion } = await sb.auth.getUser();
+  const sessionUserId = sesion.user?.id ?? null;
+
+  const [config, classes, promociones, perfiles, reservas, leidasFila] = await Promise.all([
+    datosConfig.leerConfiguracion(),
+    datosClases.listarClases(),
+    datosPromos.listarPromociones(),
+    sb.from("perfiles").select("*"),
+    sb.from("reservas").select("*"),
+    sb.from("promociones_leidas").select("*"),
+  ]);
+
+  if (perfiles.error) throw new Error(perfiles.error.message);
+  if (reservas.error) throw new Error(reservas.error.message);
+  if (leidasFila.error) throw new Error(leidasFila.error.message);
+
+  const leidas: Record<string, string[]> = {};
+  if (sessionUserId) {
+    leidas[sessionUserId] = (leidasFila.data ?? []).map((f) => f.promocion_id);
+  }
+
+  return {
+    users: (perfiles.data ?? []).map(aUsuario),
+    config,
+    classes,
+    bookings: (reservas.data ?? []).map(aReserva),
+    promociones,
+    leidas,
+    sessionUserId,
+  };
+}
+
+export function StoreProvider({ children }: { children: React.ReactNode }) {
+  const remoto = hayBaseDeDatos();
+  const [state, setState] = useState<AppState>(() => (remoto ? ESTADO_VACIO : crearEstadoInicial()));
+  const [hidratado, setHidratado] = useState(false);
+  const montado = useRef(true);
+
+  const recargar = useCallback(async () => {
+    try {
+      const nuevo = await cargarEstadoRemoto();
+      if (montado.current) setState(nuevo);
+    } catch (e) {
+      console.error("No fue posible cargar los datos de Supabase:", e);
+    }
   }, []);
 
+  // Carga inicial y, en modo remoto, la sesión de Supabase.
   useEffect(() => {
-    if (!hidratado) return;
+    montado.current = true;
+
+    if (!remoto) {
+      setState(leerEstado());
+      setHidratado(true);
+      return;
+    }
+
+    recargar().finally(() => {
+      if (montado.current) setHidratado(true);
+    });
+
+    const sb = clienteNavegador();
+    const { data: suscripcion } = sb.auth.onAuthStateChange((evento) => {
+      if (evento === "SIGNED_IN" || evento === "SIGNED_OUT") recargar();
+    });
+
+    return () => {
+      montado.current = false;
+      suscripcion.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remoto]);
+
+  // Persistencia local: solo aplica al modo sin base de datos.
+  useEffect(() => {
+    if (!hidratado || remoto) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state, hidratado]);
+  }, [state, hidratado, remoto]);
 
   const usuario = useMemo(
     () => state.users.find((u) => u.id === state.sessionUserId) ?? null,
@@ -112,7 +207,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const alumnas = useMemo(() => state.users.filter((u) => u.role === "alumna"), [state.users]);
 
   const login: StoreValue["login"] = useCallback(
-    (email, password) => {
+    async (email, password) => {
+      if (remoto) {
+        const r = await datosAuth.entrar(email, password);
+        if (!r.ok) return r;
+        const perfil = await datosAuth.perfilActual();
+        await recargar();
+        return { ok: true, role: perfil?.role };
+      }
+
       const encontrada = state.users.find(
         (u) => u.email.toLowerCase() === email.trim().toLowerCase(),
       );
@@ -121,11 +224,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setState((s) => ({ ...s, sessionUserId: encontrada.id }));
       return { ok: true, role: encontrada.role };
     },
-    [state.users],
+    [remoto, recargar, state.users],
   );
 
   const registrar: StoreValue["registrar"] = useCallback(
-    ({ nombre, email, telefono, password }) => {
+    async ({ nombre, email, telefono, password }) => {
+      if (remoto) {
+        const r = await datosAuth.registrar({ nombre, email, telefono, password });
+        if (!r.ok) return r;
+        const perfil = await datosAuth.perfilActual();
+        if (perfil) await recargar();
+        return { ok: true, sesionActiva: Boolean(perfil) };
+      }
+
       const limpio = email.trim().toLowerCase();
       if (state.users.some((u) => u.email.toLowerCase() === limpio)) {
         return { ok: false, error: "Ya existe una cuenta con ese correo." };
@@ -141,29 +252,59 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         creadaEn: new Date().toISOString(),
       };
       setState((s) => ({ ...s, users: [...s.users, nueva], sessionUserId: nueva.id }));
-      return { ok: true };
+      return { ok: true, sesionActiva: true };
     },
-    [state.users],
+    [remoto, recargar, state.users],
   );
 
-  const salir = useCallback(() => setState((s) => ({ ...s, sessionUserId: null })), []);
+  const salir = useCallback(async () => {
+    if (remoto) {
+      await datosAuth.salir();
+      await recargar();
+      return;
+    }
+    setState((s) => ({ ...s, sessionUserId: null }));
+  }, [remoto, recargar]);
 
   const guardarConfig = useCallback(
-    (config: DayConfig[]) => setState((s) => ({ ...s, config })),
-    [],
+    async (config: DayConfig[]) => {
+      if (remoto) {
+        await datosConfig.guardarConfiguracion(config);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, config }));
+    },
+    [remoto, recargar],
   );
 
-  const crearClase = useCallback((clase: Omit<ClassSession, "id">) => {
-    setState((s) => ({ ...s, classes: [...s.classes, { ...clase, id: id("cls") }] }));
-  }, []);
+  const crearClase = useCallback(
+    async (clase: Omit<ClassSession, "id">) => {
+      if (remoto) {
+        await datosClases.crearClase(clase);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, classes: [...s.classes, { ...clase, id: id("cls") }] }));
+    },
+    [remoto, recargar],
+  );
 
-  const eliminarClase = useCallback((claseId: string) => {
-    setState((s) => ({
-      ...s,
-      classes: s.classes.filter((c) => c.id !== claseId),
-      bookings: s.bookings.filter((b) => b.classId !== claseId),
-    }));
-  }, []);
+  const eliminarClase = useCallback(
+    async (claseId: string) => {
+      if (remoto) {
+        await datosClases.eliminarClase(claseId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        classes: s.classes.filter((c) => c.id !== claseId),
+        bookings: s.bookings.filter((b) => b.classId !== claseId),
+      }));
+    },
+    [remoto, recargar],
+  );
 
   const cuposUsados = useCallback(
     (classId: string, fecha: string) =>
@@ -172,7 +313,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const reservar: StoreValue["reservar"] = useCallback(
-    (classId, fecha) => {
+    async (classId, fecha) => {
+      if (remoto) {
+        const r = await datosReservas.reservar(classId, fecha);
+        if (r.ok) await recargar();
+        return r;
+      }
+
       if (!state.sessionUserId) return { ok: false, error: "Inicia sesión para agendar." };
       const clase = state.classes.find((c) => c.id === classId);
       if (!clase) return { ok: false, error: "La clase ya no está disponible." };
@@ -194,53 +341,103 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setState((s) => ({ ...s, bookings: [...s.bookings, booking] }));
       return { ok: true };
     },
-    [state.sessionUserId, state.classes, state.bookings, cuposUsados],
+    [remoto, recargar, state.sessionUserId, state.classes, state.bookings, cuposUsados],
   );
 
-  const cancelar = useCallback((bookingId: string) => {
-    setState((s) => ({ ...s, bookings: s.bookings.filter((b) => b.id !== bookingId) }));
-  }, []);
+  const cancelar = useCallback(
+    async (bookingId: string) => {
+      if (remoto) {
+        await datosReservas.cancelar(bookingId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({ ...s, bookings: s.bookings.filter((b) => b.id !== bookingId) }));
+    },
+    [remoto, recargar],
+  );
 
-  const marcarAsistencia = useCallback((bookingId: string, asistio: boolean) => {
-    setState((s) => ({
-      ...s,
-      bookings: s.bookings.map((b) => (b.id === bookingId ? { ...b, asistio } : b)),
-    }));
-  }, []);
+  const marcarAsistencia = useCallback(
+    async (bookingId: string, asistio: boolean) => {
+      if (remoto) {
+        await datosReservas.marcarAsistencia(bookingId, asistio);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        bookings: s.bookings.map((b) => (b.id === bookingId ? { ...b, asistio } : b)),
+      }));
+    },
+    [remoto, recargar],
+  );
 
-  const cambiarEstadoAlumna = useCallback((userId: string) => {
-    setState((s) => ({
-      ...s,
-      users: s.users.map((u) => (u.id === userId ? { ...u, activa: !u.activa } : u)),
-    }));
-  }, []);
+  const cambiarEstadoAlumna = useCallback(
+    async (userId: string) => {
+      if (remoto) {
+        const actual = state.users.find((u) => u.id === userId);
+        if (!actual) return;
+        await cambiarEstadoAlumnaRemoto(userId, !actual.activa);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        users: s.users.map((u) => (u.id === userId ? { ...u, activa: !u.activa } : u)),
+      }));
+    },
+    [remoto, recargar, state.users],
+  );
 
-  const crearPromocion = useCallback((promo: Omit<Promocion, "id" | "creadaEn">) => {
-    setState((s) => ({
-      ...s,
-      promociones: [
-        { ...promo, id: id("prm"), creadaEn: new Date().toISOString() },
-        ...s.promociones,
-      ],
-    }));
-  }, []);
+  const crearPromocion = useCallback(
+    async (promo: Omit<Promocion, "id" | "creadaEn">) => {
+      if (remoto) {
+        await datosPromos.crearPromocion(promo);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        promociones: [
+          { ...promo, id: id("prm"), creadaEn: new Date().toISOString() },
+          ...s.promociones,
+        ],
+      }));
+    },
+    [remoto, recargar],
+  );
 
-  const actualizarPromocion = useCallback((promoId: string, cambios: Partial<Promocion>) => {
-    setState((s) => ({
-      ...s,
-      promociones: s.promociones.map((p) => (p.id === promoId ? { ...p, ...cambios } : p)),
-    }));
-  }, []);
+  const actualizarPromocion = useCallback(
+    async (promoId: string, cambios: Partial<Promocion>) => {
+      if (remoto) {
+        await datosPromos.actualizarPromocion(promoId, cambios);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        promociones: s.promociones.map((p) => (p.id === promoId ? { ...p, ...cambios } : p)),
+      }));
+    },
+    [remoto, recargar],
+  );
 
-  const eliminarPromocion = useCallback((promoId: string) => {
-    setState((s) => ({
-      ...s,
-      promociones: s.promociones.filter((p) => p.id !== promoId),
-      leidas: Object.fromEntries(
-        Object.entries(s.leidas).map(([uid, ids]) => [uid, ids.filter((x) => x !== promoId)]),
-      ),
-    }));
-  }, []);
+  const eliminarPromocion = useCallback(
+    async (promoId: string) => {
+      if (remoto) {
+        await datosPromos.eliminarPromocion(promoId);
+        await recargar();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        promociones: s.promociones.filter((p) => p.id !== promoId),
+        leidas: Object.fromEntries(
+          Object.entries(s.leidas).map(([uid, ids]) => [uid, ids.filter((x) => x !== promoId)]),
+        ),
+      }));
+    },
+    [remoto, recargar],
+  );
 
   /** Activa y dentro de su ventana de fechas. */
   const promocionesVigentes = useCallback(() => {
@@ -267,16 +464,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [notificaciones],
   );
 
-  const marcarPromocionesLeidas = useCallback(() => {
+  const marcarPromocionesLeidas = useCallback(async () => {
+    if (!state.sessionUserId) return;
+    const hoy = hoyISO();
+    const ids = state.promociones
+      .filter((p) => p.activa && p.notificar && p.desde <= hoy && p.hasta >= hoy)
+      .map((p) => p.id);
+
+    if (remoto) {
+      const pendientes = ids.filter((pid) => !(state.leidas[state.sessionUserId!] ?? []).includes(pid));
+      if (pendientes.length === 0) return;
+      await datosPromos.marcarLeidas(state.sessionUserId, pendientes);
+      await recargar();
+      return;
+    }
+
     setState((s) => {
       if (!s.sessionUserId) return s;
-      const hoy = hoyISO();
-      const ids = s.promociones
-        .filter((p) => p.activa && p.notificar && p.desde <= hoy && p.hasta >= hoy)
-        .map((p) => p.id);
       return { ...s, leidas: { ...s.leidas, [s.sessionUserId]: ids } };
     });
-  }, []);
+  }, [remoto, recargar, state.sessionUserId, state.promociones, state.leidas]);
 
   const construirSesion = useCallback(
     (clase: ClassSession, fecha: string): SesionDelDia => {

@@ -21,8 +21,8 @@ export function TopNavAlumnas() {
   const activo = (href: string, prefijos: string[]) =>
     pathname === href || prefijos.some((p) => pathname.startsWith(p));
 
-  function cerrarSesion() {
-    salir();
+  async function cerrarSesion() {
+    await salir();
     router.push("/");
   }
 

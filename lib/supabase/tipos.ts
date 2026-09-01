@@ -17,6 +17,7 @@ export type PerfilFila = {
   id: string;
   nombre: string;
   telefono: string;
+  email: string;
   rol: Rol;
   activa: boolean;
   creada_en: string;

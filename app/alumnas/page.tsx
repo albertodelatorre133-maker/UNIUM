@@ -23,8 +23,8 @@ export default function ReservaClasesPage() {
   const semana = sesionesDeLaSemana(offset);
   const misReservas = semana.flat().filter((s) => s.reservaPropia).length;
 
-  function onReservar(s: SesionDelDia) {
-    const res = reservar(s.clase.id, s.fecha);
+  async function onReservar(s: SesionDelDia) {
+    const res = await reservar(s.clase.id, s.fecha);
     setAviso(
       res.ok
         ? { tipo: "ok", texto: `Cupo reservado en ${s.clase.titulo}.` }

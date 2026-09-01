@@ -19,8 +19,8 @@ export function SidebarAdmin() {
   const pathname = usePathname();
   const router = useRouter();
 
-  function cerrarSesion() {
-    salir();
+  async function cerrarSesion() {
+    await salir();
     router.push("/");
   }
 

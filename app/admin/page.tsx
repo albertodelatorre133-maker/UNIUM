@@ -53,9 +53,9 @@ export default function AdminCalendarioPage() {
     });
   }
 
-  function guardar(day: number) {
+  async function guardar(day: number) {
     if (!borrador.titulo.trim()) return;
-    crearClase({
+    await crearClase({
       titulo: borrador.titulo.trim(),
       descripcion: borrador.descripcion.trim() || "Sesión guiada por una coach del equipo UNIUM.",
       day,

@@ -23,6 +23,11 @@ las funciones y las políticas de seguridad.
 Después repite la operación con [`semilla.sql`](./semilla.sql), que deja el
 horario del estudio, las diez clases de la semana y tres promociones de ejemplo.
 
+> Si ejecutaste `schema.sql` antes del 1 de septiembre de 2026, tu tabla
+> `perfiles` no tiene la columna `email`. Ejecuta también
+> [`migraciones/0001_email_en_perfiles.sql`](./migraciones/0001_email_en_perfiles.sql)
+> — es idempotente y segura de correr aunque ya tengas cuentas registradas.
+
 ### 3. Conectar la aplicación
 
 **Project Settings → API**. Copia estos dos valores:

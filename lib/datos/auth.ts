@@ -61,5 +61,5 @@ export async function perfilActual(): Promise<User | null> {
     .single();
 
   if (error || !data) return null;
-  return { ...aUsuario(data), email: sesion.user.email ?? "" };
+  return aUsuario(data);
 }
