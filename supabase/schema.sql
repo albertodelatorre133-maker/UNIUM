@@ -106,13 +106,26 @@ create table if not exists public.clases (
 
 -- Una reserva es una alumna en una clase en una fecha concreta.
 create table if not exists public.reservas (
-  id          uuid primary key default gen_random_uuid(),
-  clase_id    uuid not null references public.clases on delete cascade,
-  usuario_id  uuid not null references public.perfiles on delete cascade,
-  fecha       date not null,
-  asistio     boolean not null default false,
-  creada_en   timestamptz not null default now(),
+  id                    uuid primary key default gen_random_uuid(),
+  clase_id              uuid not null references public.clases on delete cascade,
+  usuario_id            uuid not null references public.perfiles on delete cascade,
+  fecha                 date not null,
+  asistio               boolean not null default false,
+  recordatorio_enviado  boolean not null default false,
+  creada_en             timestamptz not null default now(),
   unique (clase_id, usuario_id, fecha)
+);
+
+-- Suscripciones a notificaciones push (Web Push), una fila por navegador que
+-- dio permiso. Las envía un endpoint del servidor con la llave privada VAPID,
+-- nunca el cliente.
+create table if not exists public.push_subscripciones (
+  id          uuid primary key default gen_random_uuid(),
+  usuario_id  uuid not null references public.perfiles on delete cascade,
+  endpoint    text not null unique,
+  p256dh      text not null,
+  auth        text not null,
+  creada_en   timestamptz not null default now()
 );
 
 -- Alumnas anotadas a la espera de un cupo en una clase llena. No tiene
@@ -355,6 +368,23 @@ $$;
 
 grant execute on function public.ocupacion(date, date) to anon, authenticated;
 
+-- Reservas cuya clase empieza en la próxima hora y todavía no recibieron el
+-- recordatorio push. La llama el cron de recordatorios con la llave de
+-- servicio (que ya salta la RLS), no hace falta política de acceso aparte.
+create or replace function public.reservas_por_recordar()
+returns table (reserva_id uuid, usuario_id uuid, clase_titulo text, hora time, fecha date)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select r.id, r.usuario_id, c.titulo, c.hora, r.fecha
+  from public.reservas r
+  join public.clases c on c.id = r.clase_id
+  where r.recordatorio_enviado = false
+    and (r.fecha + c.hora) between (now() + interval '55 minutes') and (now() + interval '65 minutes');
+$$;
+
 -- ------------------------------------------------- seguridad por filas -----
 alter table public.perfiles              enable row level security;
 alter table public.configuracion_dias    enable row level security;
@@ -368,6 +398,7 @@ alter table public.promociones         enable row level security;
 alter table public.promociones_leidas  enable row level security;
 alter table public.lista_espera        enable row level security;
 alter table public.cancelaciones       enable row level security;
+alter table public.push_subscripciones enable row level security;
 
 -- perfiles: cada quien ve el suyo; el staff los ve todos.
 drop policy if exists perfiles_leer on public.perfiles;
@@ -509,3 +540,11 @@ create policy lista_espera_borrar on public.lista_espera
 drop policy if exists cancelaciones_leer on public.cancelaciones;
 create policy cancelaciones_leer on public.cancelaciones
   for select to authenticated using (public.es_admin());
+
+-- push_subscripciones: cada quien gestiona la suya (para darse de alta o de
+-- baja). El envío lo hace el servidor con la llave de servicio, que salta
+-- esta política, así que el staff no necesita leer las de otras alumnas.
+drop policy if exists push_subs_propias on public.push_subscripciones;
+create policy push_subs_propias on public.push_subscripciones
+  for all to authenticated
+  using (usuario_id = auth.uid()) with check (usuario_id = auth.uid());

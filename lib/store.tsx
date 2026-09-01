@@ -38,6 +38,7 @@ import * as datosPilares from "./datos/pilares";
 import * as datosMetricas from "./datos/metricas";
 import * as datosCancelaciones from "./datos/cancelaciones";
 import * as datosEspera from "./datos/listaEspera";
+import { notificarPush } from "./push";
 import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
@@ -630,8 +631,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const registrarDesdeEspera = useCallback(
     async (entryId: string) => {
       if (remoto) {
+        const entrada = state.listaEspera.find((e) => e.id === entryId);
+        const clase = entrada ? state.classes.find((c) => c.id === entrada.classId) : null;
         const r = await datosEspera.promoverDesdeEspera(entryId);
-        if (r.ok) await recargar();
+        if (r.ok) {
+          await recargar();
+          if (entrada && clase) {
+            notificarPush({
+              usuarioId: entrada.userId,
+              titulo: "¡Tienes cupo!",
+              cuerpo: `Se liberó un lugar en ${clase.titulo} y te lo asignamos.`,
+              url: "/alumnas",
+            });
+          }
+        }
         return r;
       }
       const entrada = state.listaEspera.find((e) => e.id === entryId);
@@ -699,6 +712,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (remoto) {
         await datosPromos.crearPromocion(promo);
         await recargar();
+        if (promo.notificar) {
+          notificarPush({
+            broadcast: true,
+            titulo: promo.titulo,
+            cuerpo: promo.descripcion,
+            url: "/alumnas/novedades",
+          });
+        }
         return;
       }
       setState((s) => ({

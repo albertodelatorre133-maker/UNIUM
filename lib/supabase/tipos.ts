@@ -50,6 +50,7 @@ export type ReservaFila = {
   usuario_id: string;
   fecha: string;
   asistio: boolean;
+  recordatorio_enviado: boolean;
   creada_en: string;
 };
 
@@ -130,6 +131,15 @@ export type EsperaFila = {
   creada_en: string;
 };
 
+export type PushSubFila = {
+  id: string;
+  usuario_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  creada_en: string;
+};
+
 type Tabla<Fila, Insercion = Partial<Fila>, Actualizacion = Partial<Fila>> = {
   Row: Fila;
   Insert: Insercion;
@@ -153,6 +163,7 @@ export type Database = {
       metricas: Tabla<MetricaFila>;
       cancelaciones: Tabla<CancelacionFila>;
       lista_espera: Tabla<EsperaFila>;
+      push_subscripciones: Tabla<PushSubFila>;
     };
     Views: Record<string, never>;
     Functions: {
@@ -161,6 +172,16 @@ export type Database = {
         Returns: Array<{ clase_id: string; fecha: string; reservadas: number }>;
       };
       es_admin: { Args: Record<string, never>; Returns: boolean };
+      reservas_por_recordar: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          reserva_id: string;
+          usuario_id: string;
+          clase_titulo: string;
+          hora: string;
+          fecha: string;
+        }>;
+      };
     };
     Enums: { rol_usuario: Rol };
     CompositeTypes: Record<string, never>;
