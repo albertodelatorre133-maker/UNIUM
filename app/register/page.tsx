@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { Icono } from "@/components/Icono";
+import { BotonGoogle } from "@/components/BotonGoogle";
 import { useStore } from "@/lib/store";
+import { hayBaseDeDatos } from "@/lib/supabase/cliente";
+import { entrarConGoogle } from "@/lib/datos/auth";
 
 export default function RegisterPage() {
   const { registrar } = useStore();
@@ -14,6 +17,12 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [pendienteConfirmar, setPendienteConfirmar] = useState(false);
+
+  async function conGoogle() {
+    setError(null);
+    const r = await entrarConGoogle();
+    if (!r.ok) setError(r.error ?? "No fue posible continuar con Google.");
+  }
 
   const set = (campo: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [campo]: e.target.value }));
@@ -56,6 +65,17 @@ export default function RegisterPage() {
         </>
       }
     >
+      {hayBaseDeDatos() && (
+        <>
+          <BotonGoogle onClick={conGoogle} texto="Registrarme con Google" />
+          <div className="my-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-dim">
+            <span className="h-px flex-1 bg-white/10" />
+            o con tu correo
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+        </>
+      )}
+
       <form
         className="space-y-4 corto:space-y-3 sm:space-y-5"
         onSubmit={async (e) => {

@@ -58,6 +58,21 @@ export async function salir(): Promise<void> {
 }
 
 /**
+ * Manda a la alumna a la pantalla de consentimiento de Google. La sesión no
+ * se abre aquí: Google redirige de vuelta a /auth/callback, que la crea.
+ */
+export async function entrarConGoogle(): Promise<Resultado> {
+  const sb = clienteNavegador();
+  const origen = typeof window !== "undefined" ? window.location.origin : "";
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${origen}/auth/callback` },
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/**
  * Supabase siempre responde ok aunque el correo no exista, para no revelar
  * qué cuentas están registradas.
  */

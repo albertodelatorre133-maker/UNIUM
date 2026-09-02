@@ -219,7 +219,14 @@ begin
   insert into public.perfiles (id, nombre, telefono, email)
   values (
     new.id,
-    coalesce(nullif(new.raw_user_meta_data ->> 'nombre', ''), split_part(new.email, '@', 1)),
+    -- "nombre" lo manda el formulario de registro propio; "full_name"/"name"
+    -- los manda Google (u otro proveedor OAuth) cuando no se pasó por ahí.
+    coalesce(
+      nullif(new.raw_user_meta_data ->> 'nombre', ''),
+      nullif(new.raw_user_meta_data ->> 'full_name', ''),
+      nullif(new.raw_user_meta_data ->> 'name', ''),
+      split_part(new.email, '@', 1)
+    ),
     coalesce(new.raw_user_meta_data ->> 'telefono', ''),
     new.email
   );

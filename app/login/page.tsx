@@ -1,22 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { Icono } from "@/components/Icono";
+import { BotonGoogle } from "@/components/BotonGoogle";
 import { useStore } from "@/lib/store";
 import { CUENTA_ADMIN, CUENTA_DEMO } from "@/lib/seed";
 import { hayBaseDeDatos } from "@/lib/supabase/cliente";
+import { entrarConGoogle } from "@/lib/datos/auth";
 
-export default function LoginPage() {
+function Formulario() {
   const { login } = useStore();
   const router = useRouter();
+  const search = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verPass, setVerPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    if (search.get("error") === "google") {
+      setError("No fue posible continuar con Google. Intenta de nuevo.");
+    }
+  }, [search]);
+
+  async function conGoogle() {
+    setError(null);
+    const r = await entrarConGoogle();
+    if (!r.ok) setError(r.error ?? "No fue posible continuar con Google.");
+  }
 
   async function entrar(correo: string, clave: string) {
     setEnviando(true);
@@ -42,6 +57,17 @@ export default function LoginPage() {
         </>
       }
     >
+      {hayBaseDeDatos() && (
+        <>
+          <BotonGoogle onClick={conGoogle} />
+          <div className="my-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-dim">
+            <span className="h-px flex-1 bg-white/10" />
+            o con tu correo
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+        </>
+      )}
+
       <form
         className="space-y-4 corto:space-y-3 sm:space-y-5"
         onSubmit={(e) => {
@@ -138,5 +164,13 @@ export default function LoginPage() {
         </div>
       )}
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <Formulario />
+    </Suspense>
   );
 }
