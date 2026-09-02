@@ -1,5 +1,9 @@
 # UNIUM · Wellness Training
 
+> 📖 Para un recorrido completo del proyecto — funcionalidades, infraestructura (Vercel,
+> Supabase, Cloudflare, cron-job.org), notificaciones push y migraciones de base de datos — ver
+> [`docs/MANUAL.md`](docs/MANUAL.md).
+
 Plataforma web para la gestión de un estudio de entrenamiento funcional enfocado en mujeres.
 El sistema **no gestiona pagos, suscripciones ni créditos**: su único objetivo es la gestión
 eficiente de **horarios y reservas de clases**.
