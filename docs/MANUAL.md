@@ -302,6 +302,24 @@ externas que hay que recordar.
   Con el SMTP propio activado, el límite de correos también sube (Supabase avisa 30/hora en vez
   del límite muy bajo del correo compartido por defecto).
 
+### 9.7 Google Cloud (inicio de sesión con Google)
+- Permite que las alumnas entren con su cuenta de Google en vez de correo/contraseña, además del
+  método que ya existía (no lo reemplaza).
+- **Proyecto en Google Cloud Console**: cualquiera sirve (se usó el que ya existía, "My First
+  Project"), no requiere facturación ni tarjeta.
+- **OAuth consent screen** configurado con nombre "UNIUM Wellness Training" y tipo "Externo". No
+  necesita verificación de Google porque solo se piden los permisos básicos (correo y nombre).
+- **Cliente OAuth** (Google Cloud → APIs y servicios → Credenciales), tipo "Aplicación web":
+  - Orígenes de JavaScript autorizados: `https://uniumstudio.com`, `https://www.uniumstudio.com`.
+  - URI de redirección autorizado: la "Callback URL" que muestra Supabase (ver abajo) —
+    `https://<referencia-del-proyecto>.supabase.co/auth/v1/callback`.
+  - Da un Client ID y un Client Secret.
+- **Configurado en Supabase → Authentication → Providers → Google**: el Client ID y Client
+  Secret de arriba, con el interruptor "Enable Sign in with Google" activado.
+- Si alguien ya tenía cuenta creada con correo/contraseña y entra con Google usando el mismo
+  correo, Supabase conecta automáticamente ambos métodos a la misma cuenta (no crea una
+  duplicada) — solo pasa esto si el correo coincide exactamente.
+
 ---
 
 ## 10. Migraciones de base de datos
@@ -324,6 +342,7 @@ SQL Editor de Supabase sobre la base ya existente:
 | 0009 | Notificaciones push (suscripciones, recordatorio automático). |
 | 0010 | No cancelar con menos de una hora de anticipación. |
 | 0011 | No reservar clases con horario ya pasado. |
+| 0012 | Nombre por defecto al crear el perfil desde una cuenta de Google. |
 
 Si alguna vez se recrea el proyecto de Supabase desde cero, con correr `schema.sql` una sola vez
 ya queda todo — las migraciones numeradas son solo para ponerse al día un proyecto que ya
@@ -360,7 +379,8 @@ de ejemplo — es la forma normal de probar cambios antes de subirlos.
 ```
 app/
   page.tsx                       landing pública
-  login/ · register/             autenticación
+  login/ · register/             autenticación (incluye "Continuar con Google")
+  auth/callback/                 a donde regresa Google tras el consentimiento
   recuperar/ · restablecer/      recuperación de contraseña
   alumnas/                       portal de alumnas
   admin/                         portal de administración
@@ -370,6 +390,8 @@ app/
 components/
   ConfirmDialog.tsx              diálogo de confirmación reutilizable (cancelar reserva, etc.)
   NotificacionesPush.tsx         interruptor de notificaciones (alumnas y admin)
+  PromptNotificaciones.tsx       aviso para activar notificaciones al entrar al portal
+  BotonGoogle.tsx                botón de "Continuar con Google"
   CalendarioSemanal.tsx          calendario compartido por ambos portales
 
 lib/
@@ -378,7 +400,7 @@ lib/
   push.ts                        notificaciones push del lado del navegador
   servidor/push.ts               notificaciones push del lado del servidor (privado)
   supabase/                      clientes (navegador, servidor, admin) y tipos de la base
-  datos/                         una consulta por área (reservas, clases, promociones...)
+  datos/                         una consulta por área (reservas, clases, promociones, auth...)
 
 supabase/
   schema.sql                     esquema completo, para un proyecto nuevo
