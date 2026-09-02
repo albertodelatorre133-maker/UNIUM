@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Icono } from "@/components/Icono";
 import { CalendarioSemanal } from "@/components/CalendarioSemanal";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore, type SesionDelDia } from "@/lib/store";
 import { addDays, franjasHorarias, startOfWeek, sumarMinutos, toISODate } from "@/lib/date";
 
@@ -37,6 +38,22 @@ export default function AdminCalendarioPage() {
     hora: "07:00",
     coachId: coachesActivas[0]?.id ?? "",
   });
+  const [porEliminar, setPorEliminar] = useState<{ id: string; titulo: string } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
+
+  async function confirmarEliminarClase() {
+    if (!porEliminar) return;
+    setEliminando(true);
+    try {
+      await eliminarClase(porEliminar.id);
+    } catch (e) {
+      setErrorEliminar(e instanceof Error ? e.message : "No fue posible eliminar la clase.");
+    } finally {
+      setEliminando(false);
+      setPorEliminar(null);
+    }
+  }
 
   const semana = sesionesDeLaSemana(offset);
   const lunes = addDays(startOfWeek(new Date()), offset * 7);
@@ -103,7 +120,7 @@ export default function AdminCalendarioPage() {
             <span className="rounded-md bg-primary/12 px-2 py-0.5 font-mono text-[10.5px] tracking-wider text-primary">
               {s.clase.hora}
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span
                 className={`font-mono text-[10px] tracking-wider ${
                   lleno ? "text-primary" : "text-muted-dim"
@@ -111,22 +128,27 @@ export default function AdminCalendarioPage() {
               >
                 {s.reservadas}/{s.clase.cupo}
               </span>
-              <button
-                type="button"
-                aria-label={`Editar ${s.clase.titulo}`}
-                onClick={() => abrirEdicion(s)}
-                className="text-muted-dim opacity-0 transition hover:text-primary focus-visible:opacity-100 group-hover:opacity-100 max-lg:opacity-100"
-              >
-                <Icono nombre="edit" size={14} />
-              </button>
-              <button
-                type="button"
-                aria-label={`Eliminar ${s.clase.titulo}`}
-                onClick={() => eliminarClase(s.clase.id)}
-                className="text-muted-dim opacity-0 transition hover:text-red-400 focus-visible:opacity-100 group-hover:opacity-100 max-lg:opacity-100"
-              >
-                <Icono nombre="delete" size={14} />
-              </button>
+              <div className="flex items-center gap-1 rounded-lg border border-white/8 bg-white/[0.02] p-0.5 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100 max-lg:opacity-100">
+                <button
+                  type="button"
+                  aria-label={`Editar ${s.clase.titulo}`}
+                  onClick={() => abrirEdicion(s)}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-dim transition hover:bg-primary/10 hover:text-primary"
+                >
+                  <Icono nombre="edit" size={14} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Eliminar ${s.clase.titulo}`}
+                  onClick={() => {
+                    setErrorEliminar(null);
+                    setPorEliminar({ id: s.clase.id, titulo: s.clase.titulo });
+                  }}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-dim transition hover:bg-red-500/10 hover:text-red-400"
+                >
+                  <Icono nombre="delete" size={14} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -348,6 +370,13 @@ export default function AdminCalendarioPage() {
         ))}
       </section>
 
+      {errorEliminar && (
+        <p className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300">
+          <Icono nombre="error" size={15} />
+          {errorEliminar}
+        </p>
+      )}
+
       <CalendarioSemanal
         offset={offset}
         onOffset={(n) => {
@@ -358,6 +387,17 @@ export default function AdminCalendarioPage() {
         renderClase={renderClase}
         pieDia={pieDia}
       />
+
+      {porEliminar && (
+        <ConfirmDialog
+          titulo="¿Eliminar esta clase?"
+          mensaje={`Se elimina "${porEliminar.titulo}" y las reservas que tenga. No se puede deshacer.`}
+          confirmarTexto="Sí, eliminar"
+          cargando={eliminando}
+          onConfirmar={confirmarEliminarClase}
+          onCancelar={() => setPorEliminar(null)}
+        />
+      )}
     </div>
   );
 }
