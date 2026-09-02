@@ -3,11 +3,13 @@
 import { Guard } from "@/components/Guard";
 import { SidebarAdmin } from "@/components/SidebarAdmin";
 import { BottomNav } from "@/components/BottomNav";
+import { PromptNotificaciones } from "@/components/PromptNotificaciones";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <Guard rol="admin">
       <div className="min-h-screen pb-24 lg:pb-0">
+        <PromptNotificaciones />
         <SidebarAdmin />
         <main className="px-5 py-6 sm:px-7 sm:py-8 lg:ml-[262px] lg:px-9 lg:py-10">{children}</main>
         <BottomNav
