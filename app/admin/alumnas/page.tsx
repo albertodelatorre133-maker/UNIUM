@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Icono } from "@/components/Icono";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useStore } from "@/lib/store";
 import { diasDesde, formatoCorto } from "@/lib/date";
 
@@ -14,9 +15,21 @@ const FILTROS: Array<{ id: Filtro; label: string }> = [
 ];
 
 export default function DirectorioAlumnasPage() {
-  const { alumnas, state, ultimaAsistencia, cambiarEstadoAlumna } = useStore();
+  const { alumnas, state, ultimaAsistencia, cambiarEstadoAlumna, eliminarAlumna } = useStore();
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todas");
+  const [porEliminar, setPorEliminar] = useState<{ id: string; nombre: string } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
+
+  async function confirmarEliminar() {
+    if (!porEliminar) return;
+    setEliminando(true);
+    const r = await eliminarAlumna(porEliminar.id);
+    setEliminando(false);
+    setPorEliminar(null);
+    if (!r.ok) setErrorEliminar(r.error ?? "No fue posible eliminar la alumna.");
+  }
 
   const filas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -176,6 +189,13 @@ export default function DirectorioAlumnasPage() {
         )}
       </section>
 
+      {errorEliminar && (
+        <p className="hidden items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-xs text-red-300 lg:flex">
+          <Icono nombre="error" size={15} />
+          {errorEliminar}
+        </p>
+      )}
+
       <section className="glass hidden overflow-hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left">
@@ -251,13 +271,31 @@ export default function DirectorioAlumnasPage() {
                     <span className="font-display text-lg font-bold text-white">{f.reservas}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => cambiarEstadoAlumna(f.alumna.id)}
-                      className="btn-ghost !px-3 !py-2 text-[10px]"
-                    >
-                      {f.alumna.activa ? "Desactivar" : "Activar"}
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => cambiarEstadoAlumna(f.alumna.id)}
+                        className="btn-ghost !px-3 !py-2 text-[10px]"
+                      >
+                        {f.alumna.activa ? "Desactivar" : "Activar"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={f.reservas > 0}
+                        title={
+                          f.reservas > 0
+                            ? "No se puede eliminar: todavía tiene reservas."
+                            : "Eliminar cuenta"
+                        }
+                        onClick={() => {
+                          setErrorEliminar(null);
+                          setPorEliminar({ id: f.alumna.id, nombre: f.alumna.nombre });
+                        }}
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 text-muted transition hover:border-red-500/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-muted"
+                      >
+                        <Icono nombre="delete" size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -276,6 +314,17 @@ export default function DirectorioAlumnasPage() {
           </table>
         </div>
       </section>
+
+      {porEliminar && (
+        <ConfirmDialog
+          titulo="¿Eliminar esta cuenta?"
+          mensaje={`Se elimina por completo la cuenta de ${porEliminar.nombre}. No se puede deshacer.`}
+          confirmarTexto="Sí, eliminar"
+          cargando={eliminando}
+          onConfirmar={confirmarEliminar}
+          onCancelar={() => setPorEliminar(null)}
+        />
+      )}
     </div>
   );
 }

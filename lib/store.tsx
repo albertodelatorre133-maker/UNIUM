@@ -48,7 +48,10 @@ import * as datosMetricas from "./datos/metricas";
 import * as datosCancelaciones from "./datos/cancelaciones";
 import * as datosEspera from "./datos/listaEspera";
 import { notificarPush, notificarNuevaReserva, notificarNuevaCancelacion } from "./push";
-import { cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto } from "./datos/alumnas";
+import {
+  cambiarEstadoAlumna as cambiarEstadoAlumnaRemoto,
+  eliminarAlumna as eliminarAlumnaRemoto,
+} from "./datos/alumnas";
 
 const STORAGE_KEY = "unium.state.v2";
 
@@ -106,6 +109,7 @@ interface StoreValue {
   esperaDeSesion: (classId: string, fecha: string) => Array<{ entrada: EsperaEntry; alumna: User }>;
   marcarAsistencia: (bookingId: string, asistio: boolean) => Promise<void>;
   cambiarEstadoAlumna: (userId: string) => Promise<void>;
+  eliminarAlumna: (userId: string) => Promise<{ ok: boolean; error?: string }>;
   crearPromocion: (promo: Omit<Promocion, "id" | "creadaEn">) => Promise<void>;
   actualizarPromocion: (id: string, cambios: Partial<Promocion>) => Promise<void>;
   eliminarPromocion: (id: string) => Promise<void>;
@@ -754,6 +758,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [remoto, recargar, state.users],
   );
 
+  const eliminarAlumna = useCallback(
+    async (userId: string) => {
+      if (remoto) {
+        const r = await eliminarAlumnaRemoto(userId);
+        if (r.ok) await recargar();
+        return r;
+      }
+      const tieneReservas = state.bookings.some((b) => b.userId === userId);
+      if (tieneReservas) {
+        return { ok: false, error: "No puedes eliminar esta alumna: todavía tiene clases reservadas." };
+      }
+      setState((s) => ({ ...s, users: s.users.filter((u) => u.id !== userId) }));
+      return { ok: true };
+    },
+    [remoto, recargar, state.bookings],
+  );
+
   const crearPromocion = useCallback(
     async (promo: Omit<Promocion, "id" | "creadaEn">) => {
       if (remoto) {
@@ -1047,6 +1068,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     esperaDeSesion,
     marcarAsistencia,
     cambiarEstadoAlumna,
+    eliminarAlumna,
     crearPromocion,
     actualizarPromocion,
     eliminarPromocion,

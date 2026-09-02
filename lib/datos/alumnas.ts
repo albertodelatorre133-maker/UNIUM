@@ -3,6 +3,7 @@
 import { clienteNavegador } from "@/lib/supabase/cliente";
 import { aUsuario } from "./comun";
 import type { User } from "@/lib/types";
+import type { Resultado } from "./auth";
 
 export interface FilaDirectorio {
   alumna: User;
@@ -48,4 +49,16 @@ export async function cambiarEstadoAlumna(usuarioId: string, activa: boolean): P
     .eq("id", usuarioId);
 
   if (error) throw new Error(error.message);
+}
+
+/** Borra la cuenta completa (solo el staff, y solo si no tiene reservas). */
+export async function eliminarAlumna(usuarioId: string): Promise<Resultado> {
+  const r = await fetch("/api/admin/eliminar-alumna", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ usuarioId }),
+  });
+  const datos = await r.json().catch(() => null);
+  if (!r.ok) return { ok: false, error: datos?.error ?? "No fue posible eliminar la alumna." };
+  return { ok: true };
 }

@@ -396,6 +396,32 @@ create trigger reservas_cancelacion_validar
   before delete on public.reservas
   for each row execute function public.validar_cancelacion();
 
+-- El API de administración ya revisa esto antes de borrar (para dar un
+-- mensaje claro), pero se repite aquí como último resguardo: nadie puede
+-- borrar un perfil con reservas todavía en la tabla, ni siquiera con acceso
+-- directo a la base, para no perder el historial por accidente.
+create or replace function public.validar_borrado_perfil()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  reservas_activas integer;
+begin
+  select count(*) into reservas_activas from public.reservas where usuario_id = old.id;
+  if reservas_activas > 0 then
+    raise exception 'No se puede eliminar: la alumna todavía tiene reservas.';
+  end if;
+  return old;
+end;
+$$;
+
+drop trigger if exists perfiles_validar_borrado on public.perfiles;
+create trigger perfiles_validar_borrado
+  before delete on public.perfiles
+  for each row execute function public.validar_borrado_perfil();
+
 -- Ocupación por clase y fecha. Las alumnas necesitan saber cuántos cupos
 -- quedan sin poder ver quién reservó, así que se expone solo el agregado.
 create or replace function public.ocupacion(desde date, hasta date)
@@ -456,6 +482,13 @@ create policy perfiles_editar on public.perfiles
   for update to authenticated
   using (id = auth.uid() or public.es_admin())
   with check (id = auth.uid() or public.es_admin());
+
+-- Solo el staff puede eliminar cuentas, y solo a través del API de admin
+-- (que usa la llave de servicio y valida antes que no tenga reservas).
+drop policy if exists perfiles_borrar on public.perfiles;
+create policy perfiles_borrar on public.perfiles
+  for delete to authenticated
+  using (public.es_admin());
 
 -- configuración y clases: lectura pública (la landing muestra los horarios),
 -- escritura solo del staff.
