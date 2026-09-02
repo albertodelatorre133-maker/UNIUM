@@ -259,6 +259,9 @@ externas que hay que recordar.
   - Ambos en modo **"DNS only"** (nube gris, no proxied) — importante dejarlos así, si se activa
     el proxy naranja de Cloudflare puede interferir con el certificado SSL de Vercel y con
     peticiones automatizadas como el cron job.
+- Además tiene los registros que agregó **Resend** para poder mandar correo desde el dominio
+  (DKIM, SPF/MX y DMARC — ver 9.6). Esos los agregó Resend automáticamente vía su integración
+  "Auto configure" con la cuenta de Cloudflare, no se tocaron a mano.
 
 ### 9.5 cron-job.org (recordatorios automáticos)
 - Servicio gratuito externo que llama a la API cada 10 minutos, porque Vercel no lo permite
@@ -273,6 +276,31 @@ externas que hay que recordar.
     Vercel.
 - Se puede revisar el historial de ejecuciones ahí mismo (columna "Últimos eventos") para
   confirmar que sigue respondiendo `200 OK`.
+
+### 9.6 Resend (correos de Supabase con dominio propio)
+- Servicio de correo transaccional gratuito (hasta 3,000 correos/mes) usado para que los correos
+  de confirmación y de "olvidé mi contraseña" salgan desde `no-reply@uniumstudio.com` en vez del
+  remitente genérico de Supabase.
+- **Dominio verificado en Resend**: `uniumstudio.com`, con los registros DKIM/SPF/DMARC que
+  Resend agregó solo en Cloudflare (ver 9.4). Esto solo habilita **envío**, no un buzón real —
+  "Enable Receiving" se dejó apagado a propósito.
+- **API Key**: creada en Resend → API Keys, con el nombre `supabase-smtp`. Funciona como
+  contraseña del SMTP. Si algún día hay que rotarla, se borra y se crea una nueva, y hay que
+  actualizar el campo "Password" en Supabase (ver abajo) — Resend no la vuelve a mostrar.
+- **Configurado en Supabase → Authentication → Emails → SMTP Settings** (interruptor "Enable
+  custom SMTP" activado):
+
+| Campo | Valor |
+| --- | --- |
+| Sender email address | `no-reply@uniumstudio.com` |
+| Sender name | `UNIUM Wellness Training` |
+| Host | `smtp.resend.com` |
+| Port number | `465` |
+| Username | `resend` |
+| Password | la API key de Resend (`re_...`) |
+
+  Con el SMTP propio activado, el límite de correos también sube (Supabase avisa 30/hora en vez
+  del límite muy bajo del correo compartido por defecto).
 
 ---
 
