@@ -152,10 +152,7 @@ export default function AdminCalendarioPage() {
             </div>
           </div>
 
-          <Link
-            href={`/admin/asistencia?clase=${s.clase.id}&fecha=${s.fecha}`}
-            className="mt-2 block outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          >
+          <div className="mt-2">
             <h4 className="font-display text-[15px] font-semibold uppercase leading-tight tracking-wide text-white">
               {s.clase.titulo}
             </h4>
@@ -163,7 +160,7 @@ export default function AdminCalendarioPage() {
               <Icono nombre="person" size={12} />
               {nombreCoach(s.clase.coachId)}
             </p>
-          </Link>
+          </div>
 
           {lleno && s.enEspera > 0 && (
             <span
