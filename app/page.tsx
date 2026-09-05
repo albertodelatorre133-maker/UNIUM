@@ -21,7 +21,7 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]" />
         <div className="section relative grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
           <div className="animate-fade-up">
-            <span className="eyebrow">Estudio de entrenamiento funcional · Mujeres</span>
+            <span className="eyebrow">Estudio de entrenamiento funcional y de fuerza</span>
             <h1 className="mt-4 lg:mt-5 font-display text-[42px] font-bold uppercase leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               Entrena con
               <br />
