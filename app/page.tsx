@@ -5,7 +5,7 @@ import { Foto } from "@/components/Foto";
 import { LogoCompleto } from "@/components/Marca";
 import { PromocionesInicio } from "@/components/PromocionesInicio";
 import { CoachesInicio } from "@/components/CoachesInicio";
-import { MetodoInicio } from "@/components/MetodoInicio";
+import { IntroMetodo, MetodoInicio } from "@/components/MetodoInicio";
 import { HorarioInicio } from "@/components/HorarioInicio";
 import { GrupoMaximoTexto, MetricasInicio } from "@/components/MetricasInicio";
 import { ChipCiudad, LemaFooter, UbicacionInicio } from "@/components/EstudioInicio";
@@ -79,10 +79,7 @@ export default function LandingPage() {
             <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
               Cuatro pilares en cada <span className="gold-text">sesión</span>
             </h2>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
-              No hay dos semanas iguales, pero sí una estructura: fuerza, movilidad, intensidad y
-              acompañamiento. Todo medido, todo con propósito.
-            </p>
+            <IntroMetodo />
             <Foto
               {...FOTOS.fuerza}
               className="mt-8 aspect-[4/3] rounded-2xl border border-white/10 lg:aspect-[3/4]"

@@ -113,6 +113,8 @@ export function aEstudio(fila: EstudioFila): Estudio {
     email: fila.email,
     instagram: fila.instagram,
     mapa: fila.mapa,
+    sobreEstudio: fila.sobre_estudio,
+    sobreMetodo: fila.sobre_metodo,
   };
 }
 

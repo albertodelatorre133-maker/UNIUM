@@ -43,15 +43,19 @@ create table if not exists public.configuracion_dias (
 -- desde /admin/configuracion. Fila única: el id fijo en 1 es el truco
 -- habitual para tablas "singleton" en Postgres.
 create table if not exists public.configuracion_estudio (
-  id          smallint primary key default 1 check (id = 1),
-  nombre      text not null default '',
-  lema        text not null default '',
-  direccion   text not null default '',
-  ciudad      text not null default '',
-  telefono    text not null default '',
-  email       text not null default '',
-  instagram   text not null default '',
-  mapa        text not null default ''
+  id             smallint primary key default 1 check (id = 1),
+  nombre         text not null default '',
+  lema           text not null default '',
+  direccion      text not null default '',
+  ciudad         text not null default '',
+  telefono       text not null default '',
+  email          text not null default '',
+  instagram      text not null default '',
+  mapa           text not null default '',
+  -- Párrafos editables de la landing (sección "El estudio" y "Cuatro
+  -- pilares en cada sesión"), antes fijos en el código.
+  sobre_estudio  text not null default '',
+  sobre_metodo   text not null default ''
 );
 
 -- Los "cuatro pilares" del método, mostrados en la landing y editables desde

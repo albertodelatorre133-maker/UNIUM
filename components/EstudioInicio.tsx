@@ -40,10 +40,7 @@ export function UbicacionInicio() {
           <h2 className="mt-4 font-display text-3xl font-bold uppercase tracking-tight sm:text-4xl lg:text-5xl">
             El <span className="gold-text">estudio</span>
           </h2>
-          <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted">
-            Un espacio pensado al detalle: iluminación cálida, equipamiento premium y aforo
-            limitado. Todo diseñado para que la sesión sea tuya.
-          </p>
+          <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted">{e.sobreEstudio}</p>
           <ul className="mt-8 space-y-4">
             {[
               { icono: "location_on", texto: `${e.direccion} · ${e.ciudad}` },

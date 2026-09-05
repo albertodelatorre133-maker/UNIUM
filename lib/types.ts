@@ -80,6 +80,10 @@ export interface Estudio {
   email: string;
   instagram: string;
   mapa: string;
+  /** Párrafo de la sección "El estudio" en la landing. */
+  sobreEstudio: string;
+  /** Párrafo de la sección "Cuatro pilares en cada sesión" en la landing. */
+  sobreMetodo: string;
 }
 
 /** Uno de los "pilares" del método, mostrados en la landing. */

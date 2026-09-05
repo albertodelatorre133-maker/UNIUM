@@ -92,6 +92,8 @@ export type EstudioFila = {
   email: string;
   instagram: string;
   mapa: string;
+  sobre_estudio: string;
+  sobre_metodo: string;
 };
 
 export type PilarFila = {

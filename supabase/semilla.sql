@@ -17,7 +17,7 @@ insert into public.configuracion_dias (day, activo, apertura, cierre) values
 on conflict (day) do nothing;
 
 -- Datos generales del estudio (fila única).
-insert into public.configuracion_estudio (id, nombre, lema, direccion, ciudad, telefono, email, instagram, mapa)
+insert into public.configuracion_estudio (id, nombre, lema, direccion, ciudad, telefono, email, instagram, mapa, sobre_estudio, sobre_metodo)
 values (
   1,
   'UNIUM Wellness Training',
@@ -27,7 +27,9 @@ values (
   '+57 320 448 9012',
   'hola@unium.fit',
   '@unium.wellness',
-  'https://www.openstreetmap.org/export/embed.html?bbox=-74.0530%2C4.6720%2C-74.0400%2C4.6800&layer=mapnik&marker=4.6760%2C-74.0465'
+  'https://www.openstreetmap.org/export/embed.html?bbox=-74.0530%2C4.6720%2C-74.0400%2C4.6800&layer=mapnik&marker=4.6760%2C-74.0465',
+  'Un espacio pensado al detalle: iluminación cálida, equipamiento premium y aforo limitado. Todo diseñado para que la sesión sea tuya.',
+  'No hay dos semanas iguales, pero sí una estructura: fuerza, movilidad, intensidad y acompañamiento. Todo medido, todo con propósito.'
 )
 on conflict (id) do nothing;
 

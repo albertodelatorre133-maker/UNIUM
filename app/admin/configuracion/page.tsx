@@ -338,6 +338,36 @@ function PestanaEstudio() {
           />
         </div>
 
+        <div className="sm:col-span-2">
+          <label htmlFor="e-sobreEstudio">Texto de la sección "El estudio" (página de inicio)</label>
+          <textarea
+            id="e-sobreEstudio"
+            rows={3}
+            className="w-full"
+            value={borrador.sobreEstudio}
+            onChange={(e) => {
+              setBorrador({ ...borrador, sobreEstudio: e.target.value });
+              setGuardado(false);
+            }}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="e-sobreMetodo">
+            Texto de "Cuatro pilares en cada sesión" (página de inicio)
+          </label>
+          <textarea
+            id="e-sobreMetodo"
+            rows={3}
+            className="w-full"
+            value={borrador.sobreMetodo}
+            onChange={(e) => {
+              setBorrador({ ...borrador, sobreMetodo: e.target.value });
+              setGuardado(false);
+            }}
+          />
+        </div>
+
         <div className="flex flex-col items-center gap-4 sm:col-span-2 sm:flex-row">
           <button type="submit" disabled={enviando} className="btn-gold w-full sm:w-auto">
             <Icono nombre="save" size={16} />

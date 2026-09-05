@@ -51,6 +51,10 @@ export const ESTUDIO = {
   email: "hola@unium.fit",
   instagram: "@unium.wellness",
   mapa: "https://www.openstreetmap.org/export/embed.html?bbox=-74.0530%2C4.6720%2C-74.0400%2C4.6800&layer=mapnik&marker=4.6760%2C-74.0465",
+  sobreEstudio:
+    "Un espacio pensado al detalle: iluminación cálida, equipamiento premium y aforo limitado. Todo diseñado para que la sesión sea tuya.",
+  sobreMetodo:
+    "No hay dos semanas iguales, pero sí una estructura: fuerza, movilidad, intensidad y acompañamiento. Todo medido, todo con propósito.",
 };
 
 /** "Los cuatro pilares" del método, mostrados en la landing y editables desde /admin/configuracion. */

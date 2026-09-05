@@ -8,6 +8,15 @@ import { Icono } from "./Icono";
  * mismo estado que el panel, así que lo que el staff publica aparece aquí de
  * inmediato.
  */
+/** Párrafo editable de la sección "Cuatro pilares en cada sesión". */
+export function IntroMetodo() {
+  const { hidratado, state } = useStore();
+  if (!hidratado) return null;
+  return (
+    <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">{state.estudio.sobreMetodo}</p>
+  );
+}
+
 export function MetodoInicio() {
   const { hidratado, state } = useStore();
   if (!hidratado) return null;

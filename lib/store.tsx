@@ -171,6 +171,8 @@ const ESTUDIO_VACIO: Estudio = {
   email: "",
   instagram: "",
   mapa: "",
+  sobreEstudio: "",
+  sobreMetodo: "",
 };
 
 const ESTADO_VACIO: AppState = {
